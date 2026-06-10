@@ -1,0 +1,58 @@
+# Docker Compose 部署专用 profile（由 SPRING_PROFILES_ACTIVE=docker 激活）
+#
+# 与 application-local.yml 的区别：
+# - 数据库 host 走 docker-compose 服务名（mysql）而非 127.0.0.1
+# - ffmpeg 路径改成 Linux 标准位置（apt 装在 /usr/bin/ffmpeg）
+# - Remotion 默认关闭（要可视化合成请走宿主机 npm，不走容器）
+# - 所有第三方密钥（LLM / TOS / 火山 TTS / Jamendo）启动后在前端「系统设置」UI 填，落 app_config 表
+
+spring:
+  datasource:
+    url: "jdbc:mysql://${MYSQL_HOST:mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:auteur}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true"
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:auteur}
+
+auteur:
+  voice:
+    volcano:
+      base-url: https://openspeech.bytedance.com
+      http-timeout-seconds: 90
+      demo-text: "夜色渐浓,我望着窗外的灯火,想起了那段往事。"
+      async-mode: true
+    storage:
+      local-dir: /app/storage/voice
+  video:
+    provider: ffmpeg
+    ffmpeg:
+      binary-path: /usr/bin/ffmpeg
+      timeout-seconds: 600
+      width: 1080
+      height: 1920
+      fps: 30
+      video-bitrate-kbps: 4000
+      audio-bitrate-kbps: 128
+      subtitle-font: "Noto Sans CJK SC"
+      subtitle-font-size: 11
+      subtitle-max-chars-per-line: 14
+      subtitle-margin-v: 50
+    storage:
+      local-dir: /app/storage/video
+      work-dir:  /app/storage/video/.work
+    remotion:
+      enabled: ${AUTEUR_REMOTION_ENABLED:false}
+      renderer-dir: ${AUTEUR_REMOTION_DIR:/app/renderer}
+      public-base-url: ${AUTEUR_PUBLIC_BASE_URL:http://backend:8082}
+  cover:
+    storage:
+      local-dir: /app/storage/cover
+      work-dir:  /app/storage/cover/.work
+    java2d:
+      font-family: "Noto Sans CJK SC"
+      timeout-seconds: 60
+  bgm:
+    jamendo:
+      base-url: https://api.jamendo.com/v3.0
+      timeout-seconds: 30
+      storage:
+        local-dir: /app/storage/bgm
+        public-base: /api/files/bgm

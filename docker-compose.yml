@@ -1,0 +1,80 @@
+# Auteur — Docker Compose 一键启动
+#
+# 使用：
+#   1) cp .env.example .env  （并按需修改 MySQL 密码 / 暴露端口）
+#   2) docker compose up -d --build
+#   3) 打开 http://localhost:${FRONTEND_PORT:-5174}
+#   4) 进「系统设置」页填 LLM / TOS / TTS / Jamendo 等密钥（落 app_config 表）
+#
+# 三个服务：mysql / backend / frontend
+# - Remotion 默认禁用（走纯 ffmpeg），要可视化合成请在宿主机另跑 `cd renderer && npm run dev`
+# - 生成产物（voice / video / cover / bgm）持久化到 named volume "auteur-storage"
+# - MySQL 数据持久化到 named volume "auteur-mysql"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: auteur-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-auteur}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-auteur}
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-time-zone=+08:00
+      - --max_allowed_packet=64M
+    volumes:
+      - auteur-mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_PASSWORD:-auteur}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    # 默认不暴露 3306 给宿主机；如需用 DBeaver / Navicat 连，把下面注释打开
+    # ports:
+    #   - "${MYSQL_PORT:-3306}:3306"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: auteur-backend:latest
+    container_name: auteur-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-auteur}
+      MYSQL_USER: root
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-auteur}
+      AUTEUR_REMOTION_ENABLED: ${AUTEUR_REMOTION_ENABLED:-false}
+      JAVA_OPTS: ${JAVA_OPTS:--Xms512m -Xmx2g}
+      TZ: Asia/Shanghai
+    volumes:
+      - auteur-storage:/app/storage
+    ports:
+      - "${BACKEND_PORT:-8082}:8082"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: auteur-frontend:latest
+    container_name: auteur-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      # 默认沿用 dev 时的 5174 习惯；想用 80/8080 改 .env
+      - "${FRONTEND_PORT:-5174}:80"
+
+volumes:
+  auteur-mysql:
+  auteur-storage:

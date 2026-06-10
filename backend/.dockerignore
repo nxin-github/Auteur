@@ -1,0 +1,16 @@
+# 不要把 maven build 产物、IDE 文件、本地敏感配置打进镜像
+target/
+.idea/
+.vscode/
+*.iml
+*.log
+
+# 本地敏感配置 —— Docker 部署走 application-docker.yml，本地配置不参与
+src/main/resources/application-local.yml
+
+# storage 是 docker compose 卷挂载，不进镜像
+storage/
+
+# git
+.git/
+.gitignore
