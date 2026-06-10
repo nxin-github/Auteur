@@ -6,8 +6,9 @@ backend/src/main/resources/application-local.yml
 .env.local
 
 # --- Generated assets (TTS / video / etc) ---
-backend/storage/
-storage/
+# 必须用前导 / 锚定到 git 根,否则会误伤 Java 包 com.auteur.storage(backend/src/main/java/com/auteur/storage/)
+/backend/storage/
+/storage/
 
 # --- Build output ---
 target/
