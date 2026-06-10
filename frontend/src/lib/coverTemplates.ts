@@ -361,7 +361,7 @@ const renderMinimal: CoverRenderFn = (ctx, w, h, brand, design, heroImg, logoImg
 // 模板 5:lifecopy-classic —— 录取通知书风格,红底圆角 hero(保留 hero 原色) + 底部主副标题
 // 标题用 "\n" 分隔主副:第一行小字提示语,第二行大字主标题。无换行时整段当大字主标题。
 // 参考"今天体验的人生"系列爆款封面
-const renderLifecopyClassic: CoverRenderFn = (ctx, w, h, brand, design, heroImg, logoImg) => {
+const renderLifecopyClassic: CoverRenderFn = (ctx, w, h, brand, design, heroImg, _logoImg) => {
   // 整体黑色外背景(写实质感)
   ctx.fillStyle = '#1a1a1a'
   ctx.fillRect(0, 0, w, h)
@@ -453,7 +453,7 @@ function drawWhitePlain(
   ctx: CanvasRenderingContext2D,
   text: string,
   cx: number, y: number,
-  fontSize: number,
+  _fontSize: number,
   maxW: number,
 ) {
   if (!text) return

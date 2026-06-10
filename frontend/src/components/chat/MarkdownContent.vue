@@ -28,9 +28,9 @@ const md = new MarkdownIt({
 // 把 <table> 包一层 .md-table-wrap,让列太多时横向滚动只发生在表格内,
 // 不会撑大整条 assistant 气泡。
 const defaultTableOpen = md.renderer.rules.table_open
-  || ((tokens, idx, opts, env, self) => self.renderToken(tokens, idx, opts))
+  || ((tokens, idx, opts, _env, self) => self.renderToken(tokens, idx, opts))
 const defaultTableClose = md.renderer.rules.table_close
-  || ((tokens, idx, opts, env, self) => self.renderToken(tokens, idx, opts))
+  || ((tokens, idx, opts, _env, self) => self.renderToken(tokens, idx, opts))
 
 md.renderer.rules.table_open = (tokens, idx, opts, env, self) =>
   '<div class="md-table-wrap">' + defaultTableOpen(tokens, idx, opts, env, self)
