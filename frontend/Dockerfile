@@ -19,7 +19,7 @@ RUN npm run build
 # ──────────────────────────────────────────
 # Stage 2: runtime
 # ──────────────────────────────────────────
-FROM nginx:1.27-alpine
+FROM nginx:1.31-alpine
 
 # 自定义 nginx：单页路由 fallback + /api 反代到 backend
 COPY nginx.conf /etc/nginx/conf.d/default.conf
