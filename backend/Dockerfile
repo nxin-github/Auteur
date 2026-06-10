@@ -5,7 +5,7 @@
 # ──────────────────────────────────────────
 # Stage 1: build
 # ──────────────────────────────────────────
-FROM maven:3.9-eclipse-temurin-21 AS build
+FROM maven:3-eclipse-temurin-26 AS build
 WORKDIR /workspace
 
 # 先拷 pom 让 maven 缓存依赖（这一层只在 pom 改动时失效，加快迭代构建）
