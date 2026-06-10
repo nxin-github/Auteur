@@ -215,7 +215,7 @@ cp .env.example .env                  # 想改 MySQL 密码 / 端口可以编辑
 docker compose up -d --build          # 第一次会拉镜像 + maven build + npm build，约 3-5 分钟
 ```
 
-启动完打开 **http://localhost:5174**：
+启动完打开 http://localhost:5174：
 
 1. 右上角切到 admin 模式 →「系统设置」
 2. 填 LLM `base-url + api-key`（必填，OpenAI 兼容协议都行：vLLM / DeepSeek / 智谱 / 自部署网关）
