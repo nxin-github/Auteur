@@ -20,7 +20,7 @@ RUN mvn -B -q -DskipTests package \
 # ──────────────────────────────────────────
 # Stage 2: runtime
 # ──────────────────────────────────────────
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:25-jre
 
 # ffmpeg + 中文字体（字幕烧录走 libass，必须有 CJK 字体）+ curl（healthcheck）
 RUN apt-get update \
