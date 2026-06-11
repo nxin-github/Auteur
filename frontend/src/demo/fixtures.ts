@@ -212,12 +212,18 @@ const RUN_DURATIONS: Record<number, number> = {
   1007: 6000, // assemble-video
 }
 
-export function getRunStatus(runId: number): {
-  id: number
-  status: string
-  progress: number
-  scriptId?: number
-} {
+// runId → 流水线阶段(必须返给前端,否则 PipelineRun 字段缺失页面会卡)
+const RUN_STAGES: Record<number, string> = {
+  1001: 'SCRIPT',
+  1002: 'STORYBOARD',
+  1003: 'IMAGEGEN',
+  1004: 'VOICE',
+  1005: 'FACTCHECK',
+  1006: 'COVER',
+  1007: 'VIDEO',
+}
+
+export function getRunStatus(runId: number) {
   if (!runs[runId]) {
     runs[runId] = {
       startedAt: Date.now(),
@@ -227,14 +233,26 @@ export function getRunStatus(runId: number): {
   }
   const r = runs[runId]
   const elapsed = Date.now() - r.startedAt
-  if (elapsed >= r.durationMs) {
-    return { id: runId, status: 'DONE', progress: 100, scriptId: r.scriptId }
-  }
+  const isDone = elapsed >= r.durationMs
+  const startedIso = new Date(r.startedAt).toISOString()
+  const finishedIso = isDone ? new Date(r.startedAt + r.durationMs).toISOString() : null
   return {
     id: runId,
-    status: 'RUNNING',
-    progress: Math.floor((elapsed / r.durationMs) * 100),
-    scriptId: r.scriptId,
+    topicId: topicFixture.id,
+    scriptId: r.scriptId ?? null,
+    stage: RUN_STAGES[runId] ?? 'SCRIPT',
+    status: isDone ? 'DONE' : 'RUNNING',
+    startedAt: startedIso,
+    finishedAt: finishedIso,
+    errorMsg: null,
+    lastCompletedIndex: isDone ? null : Math.floor((elapsed / r.durationMs) * 50),
+    totalItems: null,
+    pauseRequested: false,
+    paramsJson: null,
+    triggeredBy: 'demo',
+    createdAt: startedIso,
+    updatedAt: finishedIso ?? startedIso,
+    progress: isDone ? 100 : Math.floor((elapsed / r.durationMs) * 100),
   }
 }
 

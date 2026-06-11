@@ -105,7 +105,7 @@
     "sourceHookId": null,
     "potentialScore": null,
     "durationMinutes": 6,
-    "presetInputJson": null,
+    "presetInputJson": "{\"theme\": \"外卖员的一天\", \"tone\": \"悲悯而克制\", \"duration_minutes\": 5, \"protagonist_hint\": \"深夜偷外卖的中年男人\"}",
     "aiSuggestedSeries": null,
     "presetVersionUsed": 1,
     "protagonistRefUrl": null,

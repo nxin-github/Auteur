@@ -55,9 +55,10 @@ function handleReset() {
   gap: 12px;
   font-size: 13px;
   line-height: 1.5;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
+  /* 不 sticky:页面里很多工作台都有 sticky top:0 的顶栏,banner 一 sticky 就互相挡。
+     用户滚动后 banner 消失也没关系——他第一次进来时已经看到。 */
+  position: relative;
+  z-index: 50;
 }
 
 .demo-banner-icon {
