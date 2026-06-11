@@ -1,1 +1,98 @@
-[]
+[
+  {
+    "id": 1,
+    "platform": "DOUYIN",
+    "dynasty": null,
+    "genre": "生活纪实",
+    "hookType": "反转开场",
+    "emotion": "悲悯",
+    "durationMinutes": "5",
+    "avgRetention": 64.5,
+    "avgViews": 1100000,
+    "sample": 4
+  },
+  {
+    "id": 2,
+    "platform": "DOUYIN",
+    "dynasty": null,
+    "genre": "生活纪实",
+    "hookType": "代入式独白",
+    "emotion": "温暖",
+    "durationMinutes": "5",
+    "avgRetention": 53.2,
+    "avgViews": 410000,
+    "sample": 3
+  },
+  {
+    "id": 3,
+    "platform": "DOUYIN",
+    "dynasty": null,
+    "genre": "情绪共鸣",
+    "hookType": "代入式独白",
+    "emotion": "无奈",
+    "durationMinutes": "5",
+    "avgRetention": 48.5,
+    "avgViews": 285000,
+    "sample": 3
+  },
+  {
+    "id": 4,
+    "platform": "DOUYIN",
+    "dynasty": null,
+    "genre": "情绪共鸣",
+    "hookType": "反转开场",
+    "emotion": "悲悯",
+    "durationMinutes": "6",
+    "avgRetention": 41.5,
+    "avgViews": 92000,
+    "sample": 1
+  },
+  {
+    "id": 5,
+    "platform": "BILIBILI",
+    "dynasty": null,
+    "genre": "怀旧/时代",
+    "hookType": "怀旧感",
+    "emotion": "克制",
+    "durationMinutes": "7",
+    "avgRetention": 58.1,
+    "avgViews": 485000,
+    "sample": 1
+  },
+  {
+    "id": 6,
+    "platform": "DOUYIN",
+    "dynasty": null,
+    "genre": "时代焦虑",
+    "hookType": "数据冲击",
+    "emotion": "克制",
+    "durationMinutes": "4",
+    "avgRetention": 44.6,
+    "avgViews": 198000,
+    "sample": 1
+  },
+  {
+    "id": 7,
+    "platform": "WECHAT_CHANNELS",
+    "dynasty": null,
+    "genre": "情绪共鸣",
+    "hookType": "代入式独白",
+    "emotion": "无奈",
+    "durationMinutes": "5",
+    "avgRetention": 38.2,
+    "avgViews": 47000,
+    "sample": 1
+  },
+  {
+    "id": 8,
+    "platform": "DOUYIN",
+    "dynasty": null,
+    "genre": "生活纪实",
+    "hookType": "道德两难",
+    "emotion": "克制",
+    "durationMinutes": "4",
+    "avgRetention": 28.7,
+    "avgViews": 18500,
+    "sample": 1
+  }
+]

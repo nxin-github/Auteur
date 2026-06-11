@@ -32,6 +32,11 @@ import genreStatsFixture from './fixtures/genre-stats.json'
 import weeklyReviewsFixture from './fixtures/weekly-reviews.json'
 import seriesFixture from './fixtures/series.json'
 import seriesHooksFixture from './fixtures/series-hooks.json'
+// 复盘 / 数据看板:精心造的"今天体验的人生副本"系列演化数据
+import insightsTopBottomFixture from './fixtures/insights-top-bottom.json'
+import insightsDimensionWeightsFixture from './fixtures/insights-dimension-weights.json'
+import insightsWeeklyReviewFixture from './fixtures/insights-weekly-review.json'
+import dailyTrendFixture from './fixtures/analytics-daily-trend.json'
 
 export type FixtureFn = (config: InternalAxiosRequestConfig) => unknown
 export type FixtureEntry = unknown | FixtureFn
@@ -188,12 +193,19 @@ export const fixturesTable: Record<string, FixtureEntry> = {
   'GET /agent/sessions/:id/messages': [],
 
   // ─── Insights / 数据看板 ──────────────────────────────
-  'GET /insights/top-bottom': { top: publishedVideosFixture.slice(0, 5), bottom: [] },
-  'GET /insights/dimension-weights': genreStatsFixture,
-  'GET /insights/weekly-review': weeklyReviewsFixture[0] ?? null,
-  'GET /insights/recompute-scores': null,
-  'GET /insights/video-attribution': [],
-  'GET /analytics/daily-trend': [],
+  // 精心造的"今天体验的人生副本"系列 12 周演化数据 + 维度权重 + 周复盘
+  'GET /insights/top-bottom': insightsTopBottomFixture,
+  'GET /insights/dimension-weights': insightsDimensionWeightsFixture,
+  'POST /insights/weekly-review': insightsWeeklyReviewFixture,
+  'POST /insights/recompute-scores': () => ({ updated: 12 }),
+  'POST /insights/video-attribution': () => ({
+    verdict: '完播率 71.2% 超出账号基线 19 个百分点,达成「爆款」阈值',
+    whatWorked: '反转开场(前 3 秒展示外卖箱里只剩半个馒头)+ 第一人称代入(我以为他是来送餐的)+ 5 分钟时长精准卡进抖音长视频流量池',
+    whatFailed: '中段 60-90s 部分用户流失(评论区反映"煽情过度"),需要把情绪曲线压平 0.3 个量级',
+    recommendations: '1) 同公式复制到「午夜便利店」「医院走廊」题材;2) 中段把情绪关键词从「悲悯」降为「克制」;3) 封面 CTR 7.8% 偏低,大头特写改为道具特写(外卖箱)',
+    fallback: false,
+  }),
+  'GET /analytics/daily-trend': dailyTrendFixture,
   'GET /analytics/compare': { rows: [] },
   'GET /reviews/weekly': weeklyReviewsFixture,
 

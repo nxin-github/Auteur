@@ -1,0 +1,469 @@
+{
+  "platform": null,
+  "days": 90,
+  "n": 5,
+  "top": [
+    {
+      "id": 100,
+      "title": "今天体验的人生副本：偷外卖的人的一生",
+      "projectName": "偷外卖的人的一生",
+      "platform": "BILIBILI",
+      "publishedAt": "2026-06-08T18:30:00",
+      "retentionPct": 71.2,
+      "views": 1842000,
+      "likesPlusComments": 96152,
+      "dimensions": {
+        "genre": "生活纪实",
+        "hookType": "第一人称代入",
+        "emotion": "悲悯",
+        "durationMinutes": "5"
+      },
+      "likeRate": 0.046,
+      "shareRate": 0.0107,
+      "subscribeCount": 3966,
+      "coverCtr": 11.87
+    },
+    {
+      "id": 101,
+      "title": "今天体验的人生副本：午夜便利店的店员",
+      "projectName": "午夜便利店的店员",
+      "platform": "BILIBILI",
+      "publishedAt": "2026-06-02T18:30:00",
+      "retentionPct": 68.5,
+      "views": 1278000,
+      "likesPlusComments": 92732,
+      "dimensions": {
+        "genre": "生活纪实",
+        "hookType": "反转开场",
+        "emotion": "温暖",
+        "durationMinutes": "4"
+      },
+      "likeRate": 0.0668,
+      "shareRate": 0.0151,
+      "subscribeCount": 1039,
+      "coverCtr": 11.13
+    },
+    {
+      "id": 102,
+      "title": "今天体验的人生副本：医院走廊里的家属",
+      "projectName": "医院走廊里的家属",
+      "platform": "WECHAT_CHANNELS",
+      "publishedAt": "2026-05-26T18:30:00",
+      "retentionPct": 65.8,
+      "views": 924000,
+      "likesPlusComments": 73555,
+      "dimensions": {
+        "genre": "情绪共鸣",
+        "hookType": "代入式独白",
+        "emotion": "无奈",
+        "durationMinutes": "6"
+      },
+      "likeRate": 0.0691,
+      "shareRate": 0.0168,
+      "subscribeCount": 2537,
+      "coverCtr": 7.46
+    },
+    {
+      "id": 103,
+      "title": "今天体验的人生副本：地铁站口的乞讨者",
+      "projectName": "地铁站口的乞讨者",
+      "platform": "DOUYIN",
+      "publishedAt": "2026-05-20T18:30:00",
+      "retentionPct": 62.4,
+      "views": 712000,
+      "likesPlusComments": 43583,
+      "dimensions": {
+        "genre": "生活纪实",
+        "hookType": "反转开场",
+        "emotion": "悲悯",
+        "durationMinutes": "5"
+      },
+      "likeRate": 0.0566,
+      "shareRate": 0.0108,
+      "subscribeCount": 965,
+      "coverCtr": 9.67
+    },
+    {
+      "id": 104,
+      "title": "今天体验的人生副本：开往北京的绿皮火车",
+      "projectName": "开往北京的绿皮火车",
+      "platform": "DOUYIN",
+      "publishedAt": "2026-05-14T18:30:00",
+      "retentionPct": 58.1,
+      "views": 485000,
+      "likesPlusComments": 34965,
+      "dimensions": {
+        "genre": "怀旧/时代",
+        "hookType": "怀旧感",
+        "emotion": "克制",
+        "durationMinutes": "7"
+      },
+      "likeRate": 0.0602,
+      "shareRate": 0.0157,
+      "subscribeCount": 1052,
+      "coverCtr": 11.45
+    }
+  ],
+  "bottom": [
+    {
+      "id": 108,
+      "title": "今天体验的人生副本：小区门口的快递柜",
+      "projectName": "小区门口的快递柜",
+      "platform": "WECHAT_CHANNELS",
+      "publishedAt": "2026-04-16T18:30:00",
+      "retentionPct": 47.2,
+      "views": 134000,
+      "likesPlusComments": 10291,
+      "dimensions": {
+        "genre": "生活纪实",
+        "hookType": "代入式独白",
+        "emotion": "温暖",
+        "durationMinutes": "3"
+      },
+      "likeRate": 0.0666,
+      "shareRate": 0.0144,
+      "subscribeCount": 194,
+      "coverCtr": 4.37
+    },
+    {
+      "id": 107,
+      "title": "今天体验的人生副本：996 程序员的工位",
+      "projectName": "996 程序员的工位",
+      "platform": "DOUYIN",
+      "publishedAt": "2026-04-23T18:30:00",
+      "retentionPct": 44.6,
+      "views": 198000,
+      "likesPlusComments": 14954,
+      "dimensions": {
+        "genre": "时代焦虑",
+        "hookType": "数据冲击",
+        "emotion": "克制",
+        "durationMinutes": "4"
+      },
+      "likeRate": 0.0706,
+      "shareRate": 0.0132,
+      "subscribeCount": 536,
+      "coverCtr": 11.73
+    },
+    {
+      "id": 109,
+      "title": "今天体验的人生副本：退休后的中学老师",
+      "projectName": "退休后的中学老师",
+      "platform": "DOUYIN",
+      "publishedAt": "2026-04-09T18:30:00",
+      "retentionPct": 41.5,
+      "views": 92000,
+      "likesPlusComments": 6346,
+      "dimensions": {
+        "genre": "情绪共鸣",
+        "hookType": "反转开场",
+        "emotion": "悲悯",
+        "durationMinutes": "6"
+      },
+      "likeRate": 0.0644,
+      "shareRate": 0.0171,
+      "subscribeCount": 97,
+      "coverCtr": 8.29
+    },
+    {
+      "id": 110,
+      "title": "今天体验的人生副本：殡仪馆门口的家属",
+      "projectName": "殡仪馆门口的家属",
+      "platform": "KUAISHOU",
+      "publishedAt": "2026-04-02T18:30:00",
+      "retentionPct": 38.2,
+      "views": 47000,
+      "likesPlusComments": 3688,
+      "dimensions": {
+        "genre": "情绪共鸣",
+        "hookType": "代入式独白",
+        "emotion": "无奈",
+        "durationMinutes": "5"
+      },
+      "likeRate": 0.071,
+      "shareRate": 0.0142,
+      "subscribeCount": 58,
+      "coverCtr": 7.11
+    },
+    {
+      "id": 111,
+      "title": "今天体验的人生副本：婚礼司仪的麦克风后",
+      "projectName": "婚礼司仪的麦克风后",
+      "platform": "WECHAT_CHANNELS",
+      "publishedAt": "2026-03-26T18:30:00",
+      "retentionPct": 28.7,
+      "views": 18500,
+      "likesPlusComments": 993,
+      "dimensions": {
+        "genre": "生活纪实",
+        "hookType": "道德两难",
+        "emotion": "克制",
+        "durationMinutes": "4"
+      },
+      "likeRate": 0.0478,
+      "shareRate": 0.016,
+      "subscribeCount": 19,
+      "coverCtr": 12.25
+    }
+  ],
+  "topCommonality": {
+    "hookType": "反转开场 / 第一人称代入",
+    "genre": "生活纪实",
+    "emotion": "悲悯",
+    "durationMinutes": "5"
+  },
+  "bottomCommonality": {
+    "hookType": "道德两难",
+    "genre": "时代焦虑",
+    "emotion": "克制",
+    "durationMinutes": "4"
+  },
+  "topByLikeRate": [
+    {
+      "id": 110,
+      "title": "今天体验的人生副本：殡仪馆门口的家属",
+      "projectName": "殡仪馆门口的家属",
+      "platform": "KUAISHOU",
+      "publishedAt": "2026-04-02T18:30:00",
+      "retentionPct": 38.2,
+      "views": 47000,
+      "likesPlusComments": 3688,
+      "dimensions": {
+        "genre": "情绪共鸣",
+        "hookType": "代入式独白",
+        "emotion": "无奈",
+        "durationMinutes": "5"
+      },
+      "likeRate": 0.071,
+      "shareRate": 0.0142,
+      "subscribeCount": 58,
+      "coverCtr": 7.11
+    },
+    {
+      "id": 107,
+      "title": "今天体验的人生副本：996 程序员的工位",
+      "projectName": "996 程序员的工位",
+      "platform": "DOUYIN",
+      "publishedAt": "2026-04-23T18:30:00",
+      "retentionPct": 44.6,
+      "views": 198000,
+      "likesPlusComments": 14954,
+      "dimensions": {
+        "genre": "时代焦虑",
+        "hookType": "数据冲击",
+        "emotion": "克制",
+        "durationMinutes": "4"
+      },
+      "likeRate": 0.0706,
+      "shareRate": 0.0132,
+      "subscribeCount": 536,
+      "coverCtr": 11.73
+    },
+    {
+      "id": 102,
+      "title": "今天体验的人生副本：医院走廊里的家属",
+      "projectName": "医院走廊里的家属",
+      "platform": "WECHAT_CHANNELS",
+      "publishedAt": "2026-05-26T18:30:00",
+      "retentionPct": 65.8,
+      "views": 924000,
+      "likesPlusComments": 73555,
+      "dimensions": {
+        "genre": "情绪共鸣",
+        "hookType": "代入式独白",
+        "emotion": "无奈",
+        "durationMinutes": "6"
+      },
+      "likeRate": 0.0691,
+      "shareRate": 0.0168,
+      "subscribeCount": 2537,
+      "coverCtr": 7.46
+    }
+  ],
+  "topByShareRate": [
+    {
+      "id": 109,
+      "title": "今天体验的人生副本：退休后的中学老师",
+      "projectName": "退休后的中学老师",
+      "platform": "DOUYIN",
+      "publishedAt": "2026-04-09T18:30:00",
+      "retentionPct": 41.5,
+      "views": 92000,
+      "likesPlusComments": 6346,
+      "dimensions": {
+        "genre": "情绪共鸣",
+        "hookType": "反转开场",
+        "emotion": "悲悯",
+        "durationMinutes": "6"
+      },
+      "likeRate": 0.0644,
+      "shareRate": 0.0171,
+      "subscribeCount": 97,
+      "coverCtr": 8.29
+    },
+    {
+      "id": 102,
+      "title": "今天体验的人生副本：医院走廊里的家属",
+      "projectName": "医院走廊里的家属",
+      "platform": "WECHAT_CHANNELS",
+      "publishedAt": "2026-05-26T18:30:00",
+      "retentionPct": 65.8,
+      "views": 924000,
+      "likesPlusComments": 73555,
+      "dimensions": {
+        "genre": "情绪共鸣",
+        "hookType": "代入式独白",
+        "emotion": "无奈",
+        "durationMinutes": "6"
+      },
+      "likeRate": 0.0691,
+      "shareRate": 0.0168,
+      "subscribeCount": 2537,
+      "coverCtr": 7.46
+    },
+    {
+      "id": 111,
+      "title": "今天体验的人生副本：婚礼司仪的麦克风后",
+      "projectName": "婚礼司仪的麦克风后",
+      "platform": "WECHAT_CHANNELS",
+      "publishedAt": "2026-03-26T18:30:00",
+      "retentionPct": 28.7,
+      "views": 18500,
+      "likesPlusComments": 993,
+      "dimensions": {
+        "genre": "生活纪实",
+        "hookType": "道德两难",
+        "emotion": "克制",
+        "durationMinutes": "4"
+      },
+      "likeRate": 0.0478,
+      "shareRate": 0.016,
+      "subscribeCount": 19,
+      "coverCtr": 12.25
+    }
+  ],
+  "topBySubscribe": [
+    {
+      "id": 100,
+      "title": "今天体验的人生副本：偷外卖的人的一生",
+      "projectName": "偷外卖的人的一生",
+      "platform": "BILIBILI",
+      "publishedAt": "2026-06-08T18:30:00",
+      "retentionPct": 71.2,
+      "views": 1842000,
+      "likesPlusComments": 96152,
+      "dimensions": {
+        "genre": "生活纪实",
+        "hookType": "第一人称代入",
+        "emotion": "悲悯",
+        "durationMinutes": "5"
+      },
+      "likeRate": 0.046,
+      "shareRate": 0.0107,
+      "subscribeCount": 3966,
+      "coverCtr": 11.87
+    },
+    {
+      "id": 102,
+      "title": "今天体验的人生副本：医院走廊里的家属",
+      "projectName": "医院走廊里的家属",
+      "platform": "WECHAT_CHANNELS",
+      "publishedAt": "2026-05-26T18:30:00",
+      "retentionPct": 65.8,
+      "views": 924000,
+      "likesPlusComments": 73555,
+      "dimensions": {
+        "genre": "情绪共鸣",
+        "hookType": "代入式独白",
+        "emotion": "无奈",
+        "durationMinutes": "6"
+      },
+      "likeRate": 0.0691,
+      "shareRate": 0.0168,
+      "subscribeCount": 2537,
+      "coverCtr": 7.46
+    },
+    {
+      "id": 104,
+      "title": "今天体验的人生副本：开往北京的绿皮火车",
+      "projectName": "开往北京的绿皮火车",
+      "platform": "DOUYIN",
+      "publishedAt": "2026-05-14T18:30:00",
+      "retentionPct": 58.1,
+      "views": 485000,
+      "likesPlusComments": 34965,
+      "dimensions": {
+        "genre": "怀旧/时代",
+        "hookType": "怀旧感",
+        "emotion": "克制",
+        "durationMinutes": "7"
+      },
+      "likeRate": 0.0602,
+      "shareRate": 0.0157,
+      "subscribeCount": 1052,
+      "coverCtr": 11.45
+    }
+  ],
+  "topByCoverCtr": [
+    {
+      "id": 111,
+      "title": "今天体验的人生副本：婚礼司仪的麦克风后",
+      "projectName": "婚礼司仪的麦克风后",
+      "platform": "WECHAT_CHANNELS",
+      "publishedAt": "2026-03-26T18:30:00",
+      "retentionPct": 28.7,
+      "views": 18500,
+      "likesPlusComments": 993,
+      "dimensions": {
+        "genre": "生活纪实",
+        "hookType": "道德两难",
+        "emotion": "克制",
+        "durationMinutes": "4"
+      },
+      "likeRate": 0.0478,
+      "shareRate": 0.016,
+      "subscribeCount": 19,
+      "coverCtr": 12.25
+    },
+    {
+      "id": 100,
+      "title": "今天体验的人生副本：偷外卖的人的一生",
+      "projectName": "偷外卖的人的一生",
+      "platform": "BILIBILI",
+      "publishedAt": "2026-06-08T18:30:00",
+      "retentionPct": 71.2,
+      "views": 1842000,
+      "likesPlusComments": 96152,
+      "dimensions": {
+        "genre": "生活纪实",
+        "hookType": "第一人称代入",
+        "emotion": "悲悯",
+        "durationMinutes": "5"
+      },
+      "likeRate": 0.046,
+      "shareRate": 0.0107,
+      "subscribeCount": 3966,
+      "coverCtr": 11.87
+    },
+    {
+      "id": 107,
+      "title": "今天体验的人生副本：996 程序员的工位",
+      "projectName": "996 程序员的工位",
+      "platform": "DOUYIN",
+      "publishedAt": "2026-04-23T18:30:00",
+      "retentionPct": 44.6,
+      "views": 198000,
+      "likesPlusComments": 14954,
+      "dimensions": {
+        "genre": "时代焦虑",
+        "hookType": "数据冲击",
+        "emotion": "克制",
+        "durationMinutes": "4"
+      },
+      "likeRate": 0.0706,
+      "shareRate": 0.0132,
+      "subscribeCount": 536,
+      "coverCtr": 11.73
+    }
+  ]
+}

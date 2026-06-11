@@ -1,0 +1,245 @@
+{
+  "platform": null,
+  "days": 90,
+  "minSamples": 2,
+  "globalAvgRetention": 51.4,
+  "totalSample": 12,
+  "weights": {
+    "genre": [
+      {
+        "value": "生活纪实",
+        "avgRetention": 58.6,
+        "avgEngagement": 8.26,
+        "avgViews": 492906,
+        "count": 6,
+        "credible": true,
+        "avgLikeRate": 0.0712,
+        "avgShareRate": 0.0185,
+        "avgSubscribePerVideo": 1280,
+        "avgCoverCtr": 10.21
+      },
+      {
+        "value": "情绪共鸣",
+        "avgRetention": 48.2,
+        "avgEngagement": 8.33,
+        "avgViews": 245939,
+        "count": 4,
+        "credible": true,
+        "avgLikeRate": 0.0635,
+        "avgShareRate": 0.0134,
+        "avgSubscribePerVideo": 745,
+        "avgCoverCtr": 7.88
+      },
+      {
+        "value": "怀旧/时代",
+        "avgRetention": 58.1,
+        "avgEngagement": 8.77,
+        "avgViews": 346599,
+        "count": 1,
+        "credible": false,
+        "avgLikeRate": 0.0698,
+        "avgShareRate": 0.0125,
+        "avgSubscribePerVideo": 1150,
+        "avgCoverCtr": 8.64
+      },
+      {
+        "value": "时代焦虑",
+        "avgRetention": 44.6,
+        "avgEngagement": 6.44,
+        "avgViews": 366625,
+        "count": 1,
+        "credible": false,
+        "avgLikeRate": 0.0531,
+        "avgShareRate": 0.01,
+        "avgSubscribePerVideo": 532,
+        "avgCoverCtr": 11.96
+      }
+    ],
+    "hookType": [
+      {
+        "value": "反转开场",
+        "avgRetention": 64.3,
+        "avgEngagement": 9.59,
+        "avgViews": 757103,
+        "count": 3,
+        "credible": true,
+        "avgLikeRate": 0.0843,
+        "avgShareRate": 0.0196,
+        "avgSubscribePerVideo": 1620,
+        "avgCoverCtr": 5.85
+      },
+      {
+        "value": "第一人称代入",
+        "avgRetention": 71.2,
+        "avgEngagement": 11.21,
+        "avgViews": 740138,
+        "count": 1,
+        "credible": false,
+        "avgLikeRate": 0.0921,
+        "avgShareRate": 0.0272,
+        "avgSubscribePerVideo": 2150,
+        "avgCoverCtr": 11.98
+      },
+      {
+        "value": "代入式独白",
+        "avgRetention": 50.5,
+        "avgEngagement": 8.35,
+        "avgViews": 291428,
+        "count": 3,
+        "credible": true,
+        "avgLikeRate": 0.0658,
+        "avgShareRate": 0.0147,
+        "avgSubscribePerVideo": 922,
+        "avgCoverCtr": 7.0
+      },
+      {
+        "value": "怀旧感",
+        "avgRetention": 55.2,
+        "avgEngagement": 7.91,
+        "avgViews": 219285,
+        "count": 2,
+        "credible": false,
+        "avgLikeRate": 0.0681,
+        "avgShareRate": 0.0141,
+        "avgSubscribePerVideo": 1043,
+        "avgCoverCtr": 12.4
+      },
+      {
+        "value": "数据冲击",
+        "avgRetention": 47.1,
+        "avgEngagement": 6.6,
+        "avgViews": 705327,
+        "count": 2,
+        "credible": false,
+        "avgLikeRate": 0.057,
+        "avgShareRate": 0.0124,
+        "avgSubscribePerVideo": 654,
+        "avgCoverCtr": 8.46
+      },
+      {
+        "value": "道德两难",
+        "avgRetention": 28.7,
+        "avgEngagement": 5.76,
+        "avgViews": 846933,
+        "count": 1,
+        "credible": false,
+        "avgLikeRate": 0.0382,
+        "avgShareRate": 0.0089,
+        "avgSubscribePerVideo": 215,
+        "avgCoverCtr": 10.53
+      }
+    ],
+    "emotion": [
+      {
+        "value": "悲悯",
+        "avgRetention": 60.8,
+        "avgEngagement": 8.32,
+        "avgViews": 378794,
+        "count": 4,
+        "credible": true,
+        "avgLikeRate": 0.0759,
+        "avgShareRate": 0.0224,
+        "avgSubscribePerVideo": 1374,
+        "avgCoverCtr": 9.55
+      },
+      {
+        "value": "温暖",
+        "avgRetention": 56.0,
+        "avgEngagement": 8.52,
+        "avgViews": 681143,
+        "count": 3,
+        "credible": true,
+        "avgLikeRate": 0.0721,
+        "avgShareRate": 0.0114,
+        "avgSubscribePerVideo": 1058,
+        "avgCoverCtr": 9.59
+      },
+      {
+        "value": "无奈",
+        "avgRetention": 47.0,
+        "avgEngagement": 7.59,
+        "avgViews": 751322,
+        "count": 3,
+        "credible": true,
+        "avgLikeRate": 0.0634,
+        "avgShareRate": 0.011,
+        "avgSubscribePerVideo": 738,
+        "avgCoverCtr": 12.23
+      },
+      {
+        "value": "克制",
+        "avgRetention": 43.5,
+        "avgEngagement": 6.5,
+        "avgViews": 304502,
+        "count": 2,
+        "credible": false,
+        "avgLikeRate": 0.0588,
+        "avgShareRate": 0.0141,
+        "avgSubscribePerVideo": 564,
+        "avgCoverCtr": 10.23
+      }
+    ],
+    "durationMinutes": [
+      {
+        "value": "3",
+        "avgRetention": 47.2,
+        "avgEngagement": 7.53,
+        "avgViews": 260324,
+        "count": 1,
+        "credible": false,
+        "avgLikeRate": 0.0668,
+        "avgShareRate": 0.0189,
+        "avgSubscribePerVideo": 825,
+        "avgCoverCtr": 7.22
+      },
+      {
+        "value": "4",
+        "avgRetention": 47.9,
+        "avgEngagement": 7.8,
+        "avgViews": 594985,
+        "count": 4,
+        "credible": true,
+        "avgLikeRate": 0.0641,
+        "avgShareRate": 0.0136,
+        "avgSubscribePerVideo": 729,
+        "avgCoverCtr": 9.59
+      },
+      {
+        "value": "5",
+        "avgRetention": 56.5,
+        "avgEngagement": 8.59,
+        "avgViews": 806253,
+        "count": 4,
+        "credible": true,
+        "avgLikeRate": 0.0731,
+        "avgShareRate": 0.0132,
+        "avgSubscribePerVideo": 1190,
+        "avgCoverCtr": 10.51
+      },
+      {
+        "value": "6",
+        "avgRetention": 53.7,
+        "avgEngagement": 7.96,
+        "avgViews": 445176,
+        "count": 2,
+        "credible": false,
+        "avgLikeRate": 0.071,
+        "avgShareRate": 0.0178,
+        "avgSubscribePerVideo": 1024,
+        "avgCoverCtr": 7.6
+      },
+      {
+        "value": "7",
+        "avgRetention": 58.1,
+        "avgEngagement": 7.95,
+        "avgViews": 683749,
+        "count": 1,
+        "credible": false,
+        "avgLikeRate": 0.0698,
+        "avgShareRate": 0.0112,
+        "avgSubscribePerVideo": 1150,
+        "avgCoverCtr": 8.71
+      }
+    ]
+  }
+}
