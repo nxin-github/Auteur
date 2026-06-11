@@ -29,7 +29,6 @@ import bgmTracksFixture from './fixtures/bgm-tracks.json'
 import pipelineRunsFixture from './fixtures/pipeline-runs.json'
 import publishedVideosFixture from './fixtures/published-videos.json'
 import genreStatsFixture from './fixtures/genre-stats.json'
-import weeklyReviewsFixture from './fixtures/weekly-reviews.json'
 import seriesFixture from './fixtures/series.json'
 import seriesHooksFixture from './fixtures/series-hooks.json'
 // 复盘 / 数据看板:精心造的"今天体验的人生副本"系列演化数据
@@ -37,6 +36,8 @@ import insightsTopBottomFixture from './fixtures/insights-top-bottom.json'
 import insightsDimensionWeightsFixture from './fixtures/insights-dimension-weights.json'
 import insightsWeeklyReviewFixture from './fixtures/insights-weekly-review.json'
 import dailyTrendFixture from './fixtures/analytics-daily-trend.json'
+import analyticsCompareFixture from './fixtures/analytics-compare.json'
+import weeklyReviewViewFixture from './fixtures/weekly-review-view.json'
 
 export type FixtureFn = (config: InternalAxiosRequestConfig) => unknown
 export type FixtureEntry = unknown | FixtureFn
@@ -205,14 +206,50 @@ export const fixturesTable: Record<string, FixtureEntry> = {
     recommendations: '1) 同公式复制到「午夜便利店」「医院走廊」题材;2) 中段把情绪关键词从「悲悯」降为「克制」;3) 封面 CTR 7.8% 偏低,大头特写改为道具特写(外卖箱)',
     fallback: false,
   }),
+
+  // ─── Analytics(Dashboard / ReviewCompare 用)─────────
+  // GET /analytics/daily-trend 返 DailyTrendPoint[],含 date/views/engagementPct
   'GET /analytics/daily-trend': dailyTrendFixture,
-  'GET /analytics/compare': { rows: [] },
-  'GET /reviews/weekly': weeklyReviewsFixture,
+  // GET /analytics/compare 返 VideoCompare[](不是 {rows})
+  'GET /analytics/compare': analyticsCompareFixture,
+
+  // ─── Weekly Review(ReviewWeekly 页用)─────────────────
+  // 真实 endpoint: GET /reviews/weekly?week=YYYY-Www → 返单条 WeeklyReviewView
+  // 不带 week 查询时也兜个最新一周回去
+  'GET /reviews/weekly': () => weeklyReviewViewFixture,
+  'PUT /reviews/weekly': (cfg: InternalAxiosRequestConfig) => ({
+    ...weeklyReviewViewFixture,
+    ...(cfg.data as object),
+    updatedAt: new Date(0).toISOString(),
+  }),
 
   // ─── 其他 ─────────────────────────────────────────────
   'GET /config': {},
   'GET /brand-identity': null,
-  'GET /published-videos': springPage(publishedVideosFixture),
+  // ─── Published Videos / GenreStats / Series ───────────
+  // 真实 endpoint: GET /published-videos 直接返 PublishedVideo[],不是 SpringPage
+  'GET /published-videos': publishedVideosFixture,
+  'GET /published-videos/:id': (cfg: InternalAxiosRequestConfig) => {
+    const id = Number(cfg.url?.match(/published-videos\/(\d+)/)?.[1] ?? 0)
+    return (
+      publishedVideosFixture.find((v: { id?: number }) => v.id === id) ??
+      publishedVideosFixture[0]
+    )
+  },
+  'POST /published-videos': (cfg: InternalAxiosRequestConfig) => ({
+    ...publishedVideosFixture[0],
+    ...(cfg.data as object),
+  }),
+  'POST /published-videos/bulk': (cfg: InternalAxiosRequestConfig) => ({
+    inserted: ((cfg.data as unknown[])?.length ?? 0),
+    updated: 0,
+    skipped: 0,
+  }),
+  'PATCH /published-videos/:id': (cfg: InternalAxiosRequestConfig) => ({
+    ...publishedVideosFixture[0],
+    ...(cfg.data as object),
+  }),
+  'POST /published-videos/dedupe': () => ({ removed: 0, kept: publishedVideosFixture.length }),
   'GET /genre-stats': genreStatsFixture,
   'GET /series': seriesFixture,
   'GET /series-hooks': seriesHooksFixture,
