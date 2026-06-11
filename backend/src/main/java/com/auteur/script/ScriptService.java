@@ -51,11 +51,6 @@ import java.util.concurrent.Executor;
 @Service
 public class ScriptService {
 
-    /** 高于此分数走旗舰模型，否则走批量便宜模型 */
-    private static final BigDecimal PREMIUM_THRESHOLD = new BigDecimal("45");
-    private static final String PREMIUM_MODEL = "claude-opus-4-7";
-    private static final String BATCH_MODEL   = "DeepSeek-V3.2";
-
     private final LlmClient llmClient;
     private final PromptTemplateService promptService;
     private final TopicRepository topicRepository;
@@ -308,7 +303,7 @@ public class ScriptService {
             topicRepository.save(topic);
         }
 
-        String model = pickModel(topic);
+        String model = pickModel(topic, tpl);
         Double temperature = tpl.temperature() != null ? tpl.temperature() : 0.7;
         script.setModelUsed(model);
 
@@ -418,9 +413,22 @@ public class ScriptService {
                 archetype, wc == null ? "—" : wc.toString(), numHits, firstLine);
     }
 
-    private static String pickModel(Topic topic) {
-        BigDecimal score = topic.getPotentialScore();
-        return score != null && score.compareTo(PREMIUM_THRESHOLD) >= 0 ? PREMIUM_MODEL : BATCH_MODEL;
+    /**
+     * 模型选择：优先按预设里的 routing.by=potential_score 路由，旗舰/批量模型与阈值都从 yaml 读。
+     * 任何字段缺失都回退到 yaml 顶层 model；再缺就交给 LlmClient 用全局默认。
+     */
+    private static String pickModel(Topic topic, PromptTemplateService.Rendered tpl) {
+        com.auteur.llm.PromptTemplateLoader.Routing r = tpl.routing();
+        if (r != null && "potential_score".equals(r.getBy())
+                && r.getThreshold() != null
+                && r.getPremiumModel() != null && !r.getPremiumModel().isBlank()
+                && r.getBatchModel()   != null && !r.getBatchModel().isBlank()) {
+            BigDecimal score = topic.getPotentialScore();
+            return score != null && score.compareTo(r.getThreshold()) >= 0
+                    ? r.getPremiumModel()
+                    : r.getBatchModel();
+        }
+        return tpl.model();
     }
 
     /**

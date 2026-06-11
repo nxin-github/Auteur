@@ -27,7 +27,8 @@ public class PromptTemplateService {
             String model,
             Double temperature,
             Integer maxTokens,
-            Long sourceId
+            Long sourceId,
+            PromptTemplateLoader.Routing routing
     ) {}
 
     public Rendered render(String category, Map<String, ?> params) {
@@ -41,7 +42,8 @@ public class PromptTemplateService {
                 yaml.getModel(),
                 yaml.getTemperature(),
                 yaml.getMaxTokens(),
-                null
+                null,
+                yaml.getRouting()
         );
     }
 
@@ -62,7 +64,8 @@ public class PromptTemplateService {
                     yaml.getModel(),
                     yaml.getTemperature(),
                     yaml.getMaxTokens(),
-                    null
+                    null,
+                    yaml.getRouting()
             );
         } catch (Exception e) {
             throw new IllegalStateException("renderInline: yaml 解析失败 — " + e.getMessage(), e);

@@ -66,5 +66,21 @@ public class PromptTemplateLoader {
         private Integer maxTokens;
         private String system;
         private String user;
+        /** 可选模型路由策略；为空时直接用 {@link #model}。 */
+        private Routing routing;
+    }
+
+    /**
+     * 模型路由策略。`by` 决定按哪个变量打分，目前只识别 `potential_score`。
+     * 当变量值 ≥ threshold → premium_model，否则 batch_model。任一字段缺失即回退到顶层 model。
+     */
+    @Data
+    public static class Routing {
+        private String by;
+        private java.math.BigDecimal threshold;
+        @JsonProperty("premium_model")
+        private String premiumModel;
+        @JsonProperty("batch_model")
+        private String batchModel;
     }
 }
