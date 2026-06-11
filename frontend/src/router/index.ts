@@ -1,7 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
-  history: createWebHistory(),
+  // base 路径与 vite.config.ts 的 base 配置同步:
+  // - 本地 dev / Vercel / Docker 都是 '/'
+  // - GitHub Pages 是 '/Auteur/'(由 build 时的 VITE_BASE_PATH 传递,
+  //   Vite 会自动塞进 import.meta.env.BASE_URL)
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', redirect: '/home' },
 

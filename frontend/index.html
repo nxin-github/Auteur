@@ -11,6 +11,25 @@
     <meta property="og:description" content="一句话发起 → 选题、编剧、分镜、生图、配音、配乐、剪辑、复盘 全部跑完 → 落地 MP4" />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
+    <!--
+      GitHub Pages SPA fallback 路径还原 —— 配合 public/404.html 使用。
+      访问 /Auteur/scripts/12 → GitHub Pages 404 → 404.html 把它编成 /Auteur/?/scripts/12 回来 →
+      这段脚本把 ?/scripts/12 还原成 /scripts/12 推回 history,vue-router 接管。
+      Vercel / 本地 / Docker 部署不会触发这条路径(那里 SPA fallback 已经走 vercel.json 或 nginx),
+      所以这段脚本永远是 no-op。
+    -->
+    <script type="text/javascript">
+      (function(l) {
+        if (l.search[1] === '/' ) {
+          var decoded = l.search.slice(1).split('&').map(function(s) {
+            return s.replace(/~and~/g, '&')
+          }).join('?');
+          window.history.replaceState(null, null,
+            l.pathname.slice(0, -1) + decoded + l.hash
+          );
+        }
+      }(window.location))
+    </script>
   </head>
   <body>
     <div id="app"></div>

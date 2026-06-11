@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Auteur</title>
+    <!--
+      GitHub Pages SPA fallback —— rafgraph/spa-github-pages 提案的经典做法。
+      访问深链接(如 /scripts/12)时 GitHub Pages 找不到对应静态文件,
+      404 跳到这个页面;脚本把当前 path 编码成 query string redirect 回 index.html,
+      index.html 里的还原脚本再把它解码成正常 path 给 vue-router 接管。
+
+      pathSegmentsToKeep = 1 表示保留 /Auteur/ 这一层 base path 不动。
+    -->
+    <script type="text/javascript">
+      var pathSegmentsToKeep = 1;
+
+      var l = window.location;
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
+        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+        l.hash
+      );
+    </script>
+  </head>
+  <body>
+  </body>
+</html>
