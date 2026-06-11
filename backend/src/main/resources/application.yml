@@ -54,7 +54,7 @@ auteur:
     remotion:
       enabled: ${AUTEUR_REMOTION_ENABLED:true}
       renderer-dir: ${AUTEUR_REMOTION_DIR:./renderer}
-      public-base-url: ${AUTEUR_PUBLIC_BASE_URL:http://localhost:8081}
+      public-base-url: ${AUTEUR_PUBLIC_BASE_URL:http://localhost:8082}
   bgm:
     jamendo:
       base-url: https://api.jamendo.com/v3.0

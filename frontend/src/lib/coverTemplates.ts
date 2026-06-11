@@ -522,7 +522,7 @@ export const COVER_TEMPLATES: CoverTemplateMeta[] = [
   },
   {
     id: 'lifecopy-classic',
-    name: '录取通知书',
+    name: '上图下标题',
     description: '红色圆角 hero + 底部黄底黑描边大字加粗标题。"今天体验的人生"系列爆款打法,适合 lifecopy 漫画风。',
     render: renderLifecopyClassic,
   },

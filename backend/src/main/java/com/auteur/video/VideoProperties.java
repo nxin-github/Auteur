@@ -53,7 +53,7 @@ public class VideoProperties {
          * Remotion 渲染需要 audio/image 以 http(s) URL 访问(不支持 file://)。
          * /api/files/... 相对路径会被拼上 publicBaseUrl。
          */
-        private String publicBaseUrl = "http://localhost:8081";
+        private String publicBaseUrl = "http://localhost:8082";
         private String voiceUrlPrefix = "/api/files/voice/";
     }
 }

@@ -1,5 +1,7 @@
 <script setup lang="ts">
-// Preset 编辑器。10 个 tab — 基本信息 / 输入字段 / 选题 / 编剧 / 自审 / 摄影 / 美术 / 录音 / BGM / 合成。
+// Preset 编辑器。10 个 tab —
+// 基本信息 / 输入字段 / 选题策划(选题) / 编剧(脚本) / 编剧自审(脚本自审) /
+// 摄影指导(分镜) / 美术指导(画面) / 配音演员(配音字幕) / 作曲(BGM) / 制片(合成)。
 // 沿用项目 Tailwind 风格,prompt 编辑用原生 textarea
 // (font-mono + 大行距,基础够用;Monaco 后期再说,先不引依赖)。
 import { computed, onMounted, ref, watch } from 'vue'
@@ -30,14 +32,14 @@ const successMsg = ref<string | null>(null)
 const tabs = [
   { key: 'basic',     label: '基本信息' },
   { key: 'input',     label: '输入字段' },
-  { key: 'brainstorm',label: '选题' },
-  { key: 'script',    label: '编剧' },
-  { key: 'critic',    label: '自审' },
-  { key: 'storyboard',label: '摄影' },
-  { key: 'image',     label: '美术' },
-  { key: 'voice',     label: '录音' },
-  { key: 'bgm',       label: 'BGM' },
-  { key: 'composition',label: '合成' },
+  { key: 'brainstorm',label: '选题策划（选题）' },
+  { key: 'script',    label: '编剧（脚本）' },
+  { key: 'critic',    label: '编剧自审（脚本自审）' },
+  { key: 'storyboard',label: '摄影指导（分镜）' },
+  { key: 'image',     label: '美术指导（画面）' },
+  { key: 'voice',     label: '配音演员（配音字幕）' },
+  { key: 'bgm',       label: '作曲（BGM）' },
+  { key: 'composition',label: '制片（合成）' },
 ] as const
 type TabKey = typeof tabs[number]['key']
 const activeTab = ref<TabKey>('basic')

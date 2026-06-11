@@ -16,4 +16,4 @@ spring:
 #     remotion:
 #       enabled: true                          # 关掉跑测试用 false
 #       renderer-dir: ./renderer
-#       public-base-url: http://localhost:8081 # backend 对外可达地址,Remotion 拉素材用
+#       public-base-url: http://localhost:8082 # backend 对外可达地址,Remotion 拉素材用
