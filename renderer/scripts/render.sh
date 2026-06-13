@@ -20,4 +20,6 @@ cd "$(dirname "$0")/.."
 bash scripts/setup-chrome.sh
 
 # 透传给 remotion render
-exec npx remotion render src/index.ts "${COMPOSITION}" "${OUTPUT}" --props="${PROPS}"
+# --timeout=300000:Remotion 全局 delayRender 超时(默认 30s)。
+#   per-Img 的 delayRenderTimeoutInMilliseconds 不能单独覆盖此项,必须 CLI 一并提。
+exec npx remotion render src/index.ts "${COMPOSITION}" "${OUTPUT}" --props="${PROPS}" --timeout=300000

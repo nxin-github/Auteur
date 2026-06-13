@@ -53,7 +53,7 @@ import java.util.concurrent.Executor;
 @Service
 public class VideoAssemblyService {
 
-    private static final double DEFAULT_SHOT_SEC = 5.0;
+    private static final double DEFAULT_SHOT_SEC_DEFAULT = 5.0;
     private static final int DEFAULT_W = 1080;
     private static final int DEFAULT_H = 1920;
     private static final String DEFAULT_FORMAT = "9:16";
@@ -74,6 +74,7 @@ public class VideoAssemblyService {
     private final TopicStatusAdvancer topicStatusAdvancer;
     private final com.auteur.voice.VoiceClient voiceClient;
     private final com.auteur.preset.TopicPresetResolver presetResolver;
+    private final com.auteur.runtimeconfig.RuntimeConfig runtimeConfig;
 
     public VideoAssemblyService(VideoRenderer videoRenderer,
                                 Optional<RemotionVideoRenderer> remotionRenderer,
@@ -90,7 +91,8 @@ public class VideoAssemblyService {
                                 BgmService bgmService,
                                 TopicStatusAdvancer topicStatusAdvancer,
                                 com.auteur.voice.VoiceClient voiceClient,
-                                com.auteur.preset.TopicPresetResolver presetResolver) {
+                                com.auteur.preset.TopicPresetResolver presetResolver,
+                                com.auteur.runtimeconfig.RuntimeConfig runtimeConfig) {
         this.videoRenderer = videoRenderer;
         this.remotionRenderer = remotionRenderer;
         this.scriptRepository = scriptRepository;
@@ -107,6 +109,7 @@ public class VideoAssemblyService {
         this.topicStatusAdvancer = topicStatusAdvancer;
         this.voiceClient = voiceClient;
         this.presetResolver = presetResolver;
+        this.runtimeConfig = runtimeConfig;
     }
 
     public record RenderParams(Long voiceAssetId, String format,
@@ -261,7 +264,7 @@ public class VideoAssemblyService {
                 dur += timing.introSec();
                 introApplied = true;
             }
-            if (dur <= 0) dur = DEFAULT_SHOT_SEC;
+            if (dur <= 0) dur = runtimeConfig.getDouble("auteur.video.default-shot-sec", DEFAULT_SHOT_SEC_DEFAULT);
             clips.add(new VideoRenderer.ImageClip(
                     shot.getShotIndex() != null ? shot.getShotIndex() : usedShots,
                     img.getFileUrl(), cursor, dur, shot.getPromptZh(),

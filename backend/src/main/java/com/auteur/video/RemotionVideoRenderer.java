@@ -39,14 +39,17 @@ public class RemotionVideoRenderer implements VideoRenderer {
     private final VoiceProperties voiceProps;
     private final ObjectMapper objectMapper;
     private final com.auteur.storage.TosStorageService tos;
+    private final com.auteur.runtimeconfig.RuntimeConfig runtimeConfig;
 
     public RemotionVideoRenderer(VideoProperties props, VoiceProperties voiceProps,
                                  ObjectMapper objectMapper,
-                                 com.auteur.storage.TosStorageService tos) {
+                                 com.auteur.storage.TosStorageService tos,
+                                 com.auteur.runtimeconfig.RuntimeConfig runtimeConfig) {
         this.props = props;
         this.voiceProps = voiceProps;
         this.objectMapper = objectMapper;
         this.tos = tos;
+        this.runtimeConfig = runtimeConfig;
     }
 
     @Override
@@ -61,8 +64,8 @@ public class RemotionVideoRenderer implements VideoRenderer {
             throw new IllegalArgumentException("RemotionVideoRenderer: personaJson missing, topicId=" + req.topicId());
         }
 
-        VideoProperties.Remotion cfg = props.getRemotion();
-        Path rendererDir = Paths.get(cfg.getRendererDir()).toAbsolutePath().normalize();
+        VideoProperties.Remotion remotionCfg = props.getRemotion();
+        Path rendererDir = Paths.get(remotionCfg.getRendererDir()).toAbsolutePath().normalize();
         if (!Files.isDirectory(rendererDir)) {
             throw new RuntimeException("Remotion rendererDir 不存在: " + rendererDir
                     + " (config: auteur.video.remotion.renderer-dir)");
@@ -168,7 +171,7 @@ public class RemotionVideoRenderer implements VideoRenderer {
             }
             String compositionId = req.compositionId();
             int durationMs = runRender(rendererDir, outPath, propsFile.toAbsolutePath(),
-                    cfg.getTimeoutSeconds(), compositionId);
+                    remotionCfg.getTimeoutSeconds(), compositionId);
 
             postProcessLoudnorm(outPath, workDir, req.scriptId());
 
@@ -291,7 +294,8 @@ public class RemotionVideoRenderer implements VideoRenderer {
         if (url == null || url.isBlank()) return null;
         if (url.startsWith("http://") || url.startsWith("https://")) return url;
         if (url.startsWith("/")) {
-            String base = props.getRemotion().getPublicBaseUrl();
+            String base = runtimeConfig.get("auteur.video.remotion.public-base-url",
+                    props.getRemotion().getPublicBaseUrl());
             if (base == null || base.isBlank()) {
                 log.warn("[剪辑·Remotion] publicBaseUrl 未配置,无法将 {} 拼成 HTTP URL", url);
                 return null;

@@ -14,45 +14,32 @@ spring:
 
 auteur:
   voice:
-    volcano:
-      base-url: https://openspeech.bytedance.com
-      http-timeout-seconds: 90
-      demo-text: "夜色渐浓,我望着窗外的灯火,想起了那段往事。"
-      async-mode: true
+    # volcano.* 已在 V10 迁到 app_config 表(base-url / http-timeout / demo-text / async-mode 等)
     storage:
       local-dir: /app/storage/voice
   video:
     provider: ffmpeg
     ffmpeg:
+      # binary-path 是 Linux 标准位置(profile 敏感留 yml)
       binary-path: /usr/bin/ffmpeg
-      timeout-seconds: 600
-      width: 1080
-      height: 1920
-      fps: 30
-      video-bitrate-kbps: 4000
-      audio-bitrate-kbps: 128
-      subtitle-font: "Noto Sans CJK SC"
-      subtitle-font-size: 11
-      subtitle-max-chars-per-line: 14
-      subtitle-margin-v: 50
+      # 其它 ffmpeg 参数已在 V11 迁到 app_config 表
+      # 注意:首次部署时 Docker 用 Noto 字体,需要在 app_config 把 subtitle-font 改成
+      # "Noto Sans CJK SC"(默认是 macOS 的 PingFang SC),否则 Linux 上字幕渲染会回退到默认字体
     storage:
       local-dir: /app/storage/video
       work-dir:  /app/storage/video/.work
     remotion:
       enabled: ${AUTEUR_REMOTION_ENABLED:false}
       renderer-dir: ${AUTEUR_REMOTION_DIR:/app/renderer}
-      public-base-url: ${AUTEUR_PUBLIC_BASE_URL:http://backend:8082}
+      # public-base-url 已在 V11 迁;Docker 内 backend:8082 在 app_config 里设
   cover:
     storage:
       local-dir: /app/storage/cover
       work-dir:  /app/storage/cover/.work
-    java2d:
-      font-family: "Noto Sans CJK SC"
-      timeout-seconds: 60
+    # java2d.font-family 已在 V11 迁;Docker 用 Noto Sans CJK SC,首次部署后在 UI 改
   bgm:
     jamendo:
-      base-url: https://api.jamendo.com/v3.0
-      timeout-seconds: 30
+      # base-url / timeout-seconds 已在 V10 迁到 app_config 表
       storage:
         local-dir: /app/storage/bgm
         public-base: /api/files/bgm

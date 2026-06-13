@@ -37,11 +37,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Service
 public class ImageAuditService {
 
-    /** 阈值：≥ PASS 直接通过；< PASS 且 ≥ REGEN 触发 1 次重生；< REGEN 标 MANUAL */
-    private static final int PASS_THRESHOLD = 80;
-    private static final int REGEN_THRESHOLD = 60;
+    /** 阈值:≥ PASS 直接通过;< PASS 且 ≥ REGEN 触发 1 次重生;< REGEN 标 MANUAL。
+     *  默认值通过 RuntimeConfig 读 DB 覆盖。 */
+    private static final int PASS_THRESHOLD_DEFAULT = 80;
+    private static final int REGEN_THRESHOLD_DEFAULT = 60;
     /** 单镜最多重生几次 */
-    private static final int MAX_REGEN_PER_SHOT = 1;
+    private static final int MAX_REGEN_PER_SHOT_DEFAULT = 1;
 
     private final LlmClient llmClient;
     private final PromptTemplateService promptService;
@@ -54,6 +55,7 @@ public class ImageAuditService {
     private final PipelineRunService runService;
     private final Executor pipelineExecutor;
     private final Executor imageWorkExecutor;
+    private final com.auteur.runtimeconfig.RuntimeConfig runtimeConfig;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public ImageAuditService(LlmClient llmClient, PromptTemplateService promptService,
@@ -62,7 +64,8 @@ public class ImageAuditService {
                              StoryboardShotRepository shotRepository, ImageAssetRepository assetRepository,
                              ImageGenService imageGenService, PipelineRunService runService,
                              @Qualifier("pipelineExecutor") Executor pipelineExecutor,
-                             @Qualifier("imageWorkExecutor") Executor imageWorkExecutor) {
+                             @Qualifier("imageWorkExecutor") Executor imageWorkExecutor,
+                             com.auteur.runtimeconfig.RuntimeConfig runtimeConfig) {
         this.llmClient = llmClient;
         this.promptService = promptService;
         this.modelRegistry = modelRegistry;
@@ -74,7 +77,12 @@ public class ImageAuditService {
         this.runService = runService;
         this.pipelineExecutor = pipelineExecutor;
         this.imageWorkExecutor = imageWorkExecutor;
+        this.runtimeConfig = runtimeConfig;
     }
+
+    private int passThreshold() { return runtimeConfig.getInt("auteur.image.audit.pass-threshold", PASS_THRESHOLD_DEFAULT); }
+    private int regenThreshold() { return runtimeConfig.getInt("auteur.image.audit.regen-threshold", REGEN_THRESHOLD_DEFAULT); }
+    private int maxRegenPerShot() { return runtimeConfig.getInt("auteur.image.audit.max-regen-per-shot", MAX_REGEN_PER_SHOT_DEFAULT); }
 
     /** 同步审核:兼容原 API。长任务建议改走 auditScriptAsync。 */
     @Transactional
@@ -299,9 +307,9 @@ public class ImageAuditService {
             }
         }
 
-        // REGENERATE：再生一次，新图不再递归审，留人下一轮再审
+        // REGENERATE:再生一次,新图不再递归审,留人下一轮再审
         if ("REGENERATE".equals(asset.getReviewDecision())
-                && countAssets(shot.getId()) <= MAX_REGEN_PER_SHOT) {
+                && countAssets(shot.getId()) <= maxRegenPerShot()) {
             try {
                 ImageAsset regen = imageGenService.generateOne(shot);
                 regen.setReviewIssues("regen due to score=" + res.getScore());
@@ -350,16 +358,16 @@ public class ImageAuditService {
         assetRepository.save(asset);
     }
 
-    /** 优先用模型给的 decision；如果它没给，用阈值兜底。 */
-    private static String decideFromScore(Integer score, String modelDecision) {
+    /** 优先用模型给的 decision;如果它没给,用阈值兜底。 */
+    private String decideFromScore(Integer score, String modelDecision) {
         if (modelDecision != null && (modelDecision.equals("PASS")
                 || modelDecision.equals("REGENERATE")
                 || modelDecision.equals("MANUAL"))) {
             return modelDecision;
         }
         if (score == null) return "MANUAL";
-        if (score >= PASS_THRESHOLD) return "PASS";
-        if (score >= REGEN_THRESHOLD) return "REGENERATE";
+        if (score >= passThreshold()) return "PASS";
+        if (score >= regenThreshold()) return "REGENERATE";
         return "MANUAL";
     }
 

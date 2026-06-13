@@ -48,10 +48,13 @@ public class Java2DCoverRenderer {
 
     private final CoverProperties props;
     private final TosStorageService tos;
+    private final com.auteur.runtimeconfig.RuntimeConfig runtimeConfig;
 
-    public Java2DCoverRenderer(CoverProperties props, TosStorageService tos) {
+    public Java2DCoverRenderer(CoverProperties props, TosStorageService tos,
+                               com.auteur.runtimeconfig.RuntimeConfig runtimeConfig) {
         this.props = props;
         this.tos = tos;
+        this.runtimeConfig = runtimeConfig;
     }
 
     public record RenderRequest(
@@ -575,9 +578,20 @@ public class Java2DCoverRenderer {
         return pickFont(Font.PLAIN, size);
     }
 
-    /** Java 找不到 family 自动回退到 SansSerif,不会抛错。 */
+    /** Java 找不到 family 自动回退到 SansSerif,不会抛错。
+     *  字体 OS-aware:DB 有值用 DB;DB 空 + macOS 用 yml(默认 PingFang SC);
+     *  DB 空 + Linux/其它 用 Noto Sans CJK SC。V14 已把 V11 写入的 'PingFang SC' 清空,
+     *  让 fresh Linux/Docker 部署自动走 Noto。 */
     private Font pickFont(int style, int size) {
-        String family = props.getJava2d().getFontFamily();
+        String family = runtimeConfig.get("auteur.cover.java2d.font-family");
+        if (family.isBlank()) {
+            String os = System.getProperty("os.name", "").toLowerCase();
+            if (os.contains("mac") || os.contains("darwin")) {
+                family = props.getJava2d().getFontFamily(); // yml 默认 PingFang SC
+            } else {
+                family = "Noto Sans CJK SC";
+            }
+        }
         if (family == null || family.isBlank()) family = Font.SANS_SERIF;
         return new Font(family, style, size);
     }

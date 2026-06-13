@@ -48,21 +48,22 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AgentLoopService {
 
-    private static final int MAX_TURNS = 8;
+    /** Agent 单轮工具调用上限次数;达上限强制收尾。通过 RuntimeConfig 读 DB,默认 8。 */
+    private static final int MAX_TURNS_DEFAULT = 8;
 
     /**
      * Sliding window:重放时只保留最近 K 个 user 消息及其后续 assistant/tool 序列。
      * 更老的消息合并成一段 system summary 占位,避免每轮重放全历史导致 token 爆炸。
      * 切窗边界放在 user 消息开头,保证 assistant.tool_calls 一定与对应 tool 消息成对。
      */
-    private static final int K_RECENT_USER_TURNS = 6;
+    private static final int K_RECENT_USER_TURNS_DEFAULT = 6;
 
     /** 重放给 LLM 时单条消息的字符上限。超过则用 surrogate-safe 截断 + 标记尾巴。
      *  这是"控制 token 成本"的最后防线;DB 持久化不再截断,所以原文永远在库里。 */
-    private static final int REPLAY_MAX_CHARS = 32_000;
+    private static final int REPLAY_MAX_CHARS_DEFAULT = 32_000;
 
-    /** 审批 future.get 的本地超时,稍大于 ApprovalGate 的 60s,留 5s 兜底。 */
-    private static final long APPROVAL_WAIT_SECONDS = 65;
+    /** 审批 future.get 的本地超时,稍大于 ApprovalGate 的 decision-timeout(默认 300s),留 5s 兜底。 */
+    private static final long APPROVAL_WAIT_SECONDS_DEFAULT = 305;
 
     private final AgentSessionRepository sessionRepo;
     private final AgentMessageRepository messageRepo;
@@ -74,6 +75,12 @@ public class AgentLoopService {
     private final ApprovalGate approvalGate;
     private final AgentCancellationRegistry cancellationRegistry;
     private final ModelRegistry modelRegistry;
+    private final com.auteur.runtimeconfig.RuntimeConfig runtimeConfig;
+
+    private int maxTurns() { return runtimeConfig.getInt("auteur.agent.max-turns", MAX_TURNS_DEFAULT); }
+    private int kRecentUserTurns() { return runtimeConfig.getInt("auteur.agent.k-recent-user-turns", K_RECENT_USER_TURNS_DEFAULT); }
+    private int replayMaxChars() { return runtimeConfig.getInt("auteur.agent.replay-max-chars", REPLAY_MAX_CHARS_DEFAULT); }
+    private long approvalWaitSeconds() { return runtimeConfig.getInt("auteur.agent.approval-wait-seconds", (int) APPROVAL_WAIT_SECONDS_DEFAULT); }
 
     public void turn(Long sessionId, String userText, SseEmitter emitter) {
         Consumer<AgentEvent> sink = ev -> sendEvent(emitter, ev);
@@ -89,7 +96,8 @@ public class AgentLoopService {
                     "content", userText == null ? "" : userText
             )));
 
-            for (int turn = 0; turn < MAX_TURNS; turn++) {
+            int maxTurns = maxTurns();
+            for (int turn = 0; turn < maxTurns; turn++) {
                 // 进新一轮 LLM 前检查取消信号 — 已经在跑的 LLM 调用必须等结果落库,不能丢
                 if (cancelSignal.get()) {
                     log.info("[Agent] sessionId={} 在新轮 LLM 调用前被取消,正常结束", sessionId);
@@ -143,12 +151,12 @@ public class AgentLoopService {
                 return;
             }
 
-            // 跑满 MAX_TURNS 仍在调工具:再来一次禁用工具的 LLM 调用,让它给出收尾文本,
+            // 跑满 maxTurns 仍在调工具:再来一次禁用工具的 LLM 调用,让它给出收尾文本,
             // 否则历史会停在 assistant→tool 截断状态,下一轮重放时模型会迷惑。
-            log.warn("[Agent] sessionId={} 达到 MAX_TURNS={},强制禁工具收尾", sessionId, MAX_TURNS);
+            log.warn("[Agent] sessionId={} 达到 max-turns={},强制禁工具收尾", sessionId, maxTurns);
             List<ChatRequest.Message> history = replayMessages(session);
             history.add(ChatRequest.Message.system(
-                    "已达到本轮工具调用上限(" + MAX_TURNS + " 次)。请基于已有 tool 结果直接给用户写一段总结/下一步建议,不要再调用任何工具。"));
+                    "已达到本轮工具调用上限(" + maxTurns + " 次)。请基于已有 tool 结果直接给用户写一段总结/下一步建议,不要再调用任何工具。"));
             LlmToolResult finalResult = llmClient.chatWithTools(
                     LlmCallSpec.builder()
                             .operation("agent.chat.cap")
@@ -168,7 +176,7 @@ public class AgentLoopService {
                     "hasToolCalls", false
             )));
             sink.accept(AgentEvent.of("error",
-                    Map.of("message", "已达到本轮工具调用上限 " + MAX_TURNS + " 次,Agent 强制收尾。如需继续请重新发起。")));
+                    Map.of("message", "已达到本轮工具调用上限 " + maxTurns + " 次,Agent 强制收尾。如需继续请重新发起。")));
             emitter.complete();
         } catch (Exception e) {
             log.error("[Agent] turn 失败 sessionId={}: {}", sessionId, e.toString(), e);
@@ -234,8 +242,9 @@ public class AgentLoopService {
         }
         int windowStart = 0;
         List<AgentMessage> folded = List.of();
-        if (userIdx.size() > K_RECENT_USER_TURNS) {
-            windowStart = userIdx.get(userIdx.size() - K_RECENT_USER_TURNS);
+        int kRecent = kRecentUserTurns();
+        if (userIdx.size() > kRecent) {
+            windowStart = userIdx.get(userIdx.size() - kRecent);
             folded = rows.subList(0, windowStart);
         }
         List<AgentMessage> windowed = rows.subList(windowStart, rows.size());
@@ -270,9 +279,10 @@ public class AgentLoopService {
      * 重放给 LLM 前把单条消息按字符上限截断,surrogate-safe(不切碎 emoji/扩展平面字符)。
      * DB 里持久化的是原文,这里只是给 LLM 的副本节省 token。
      */
-    static String truncateForReplay(String s) {
-        if (s == null || s.length() <= REPLAY_MAX_CHARS) return s;
-        int keep = REPLAY_MAX_CHARS - 200;
+    String truncateForReplay(String s) {
+        int max = replayMaxChars();
+        if (s == null || s.length() <= max) return s;
+        int keep = max - 200;
         // 别在 surrogate pair 中间切开,产生孤立 high surrogate
         if (keep > 0 && Character.isHighSurrogate(s.charAt(keep - 1))) keep--;
         if (keep < 0) keep = 0;
@@ -497,7 +507,7 @@ public class AgentLoopService {
         sink.accept(AgentEvent.of("tool_approval_request", payload));
 
         try {
-            return future.get(APPROVAL_WAIT_SECONDS, TimeUnit.SECONDS);
+            return future.get(approvalWaitSeconds(), TimeUnit.SECONDS);
         } catch (InterruptedException ie) {
             // 线程被中断:不回填 interrupt 标志(否则下一个 LLM HTTP 调用会立刻挂),
             // 当作"会话取消",外层 for-loop 会通过 cancelSignal/CANCELLED placeholder 处理。

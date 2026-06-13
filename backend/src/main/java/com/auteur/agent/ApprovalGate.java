@@ -30,20 +30,30 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class ApprovalGate {
 
-    /** 用户响应超时,超时算拒绝。LLM 可在下一轮自纠正。 */
-    private static final long DECISION_TIMEOUT_SECONDS = 300;
+    /** 用户响应超时,超时算拒绝。LLM 可在下一轮自纠正。通过 RuntimeConfig 读 DB,默认 300 秒。 */
+    private static final long DECISION_TIMEOUT_SECONDS_DEFAULT = 300;
 
     private final ConcurrentHashMap<String, Pending> pending = new ConcurrentHashMap<>();
+    private final com.auteur.runtimeconfig.RuntimeConfig runtimeConfig;
+
+    public ApprovalGate(com.auteur.runtimeconfig.RuntimeConfig runtimeConfig) {
+        this.runtimeConfig = runtimeConfig;
+    }
+
+    private long decisionTimeoutSeconds() {
+        return runtimeConfig.getInt("auteur.agent.approval-decision-timeout-seconds", (int) DECISION_TIMEOUT_SECONDS_DEFAULT);
+    }
 
     /** AgentLoopService 调:登记一个待审批 tool_call,返回 Future 用于阻塞等待。 */
     public CompletableFuture<ApprovalDecision> register(String toolCallId, Long sessionId) {
         CompletableFuture<ApprovalDecision> f = new CompletableFuture<>();
         pending.put(toolCallId, new Pending(sessionId, f));
+        long timeoutSec = decisionTimeoutSeconds();
         // completeOnTimeout 直接把 future 用 normal value 完成(不是 exception),
         // 避免和 .exceptionally(...) 分叉成两个 future 引用。返回的仍是 this。
         f.completeOnTimeout(
-                ApprovalDecision.rejected("用户未在 " + DECISION_TIMEOUT_SECONDS + "s 内响应,默认拒绝"),
-                DECISION_TIMEOUT_SECONDS, TimeUnit.SECONDS
+                ApprovalDecision.rejected("用户未在 " + timeoutSec + "s 内响应,默认拒绝"),
+                timeoutSec, TimeUnit.SECONDS
         );
         // 完成时(超时/resolve/cancelSession 任一路径)统一清 pending,无 leak。
         f.whenComplete((d, ex) -> pending.remove(toolCallId));

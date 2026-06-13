@@ -33,36 +33,19 @@ public class VolcanoVoiceClient implements VoiceClient {
     private final VoiceProperties props;
     private final VolcanoVoiceCatalog catalog;
     private final TosStorageService tos;
-    private final com.auteur.runtimeconfig.RuntimeConfig runtimeConfig;
+    private final VolcanoConfigResolver volcanoConfig;
 
     public VolcanoVoiceClient(VoiceProperties props, VolcanoVoiceCatalog catalog, TosStorageService tos,
-                              com.auteur.runtimeconfig.RuntimeConfig runtimeConfig) {
+                              VolcanoConfigResolver volcanoConfig) {
         this.props = props;
         this.catalog = catalog;
         this.tos = tos;
-        this.runtimeConfig = runtimeConfig;
-    }
-
-    /** 合并技术参数(yml 默认)+ secret(纯 DB)给 TTS client。 */
-    private VoiceProperties.Volcano effectiveVolcano() {
-        VoiceProperties.Volcano base = props.getVolcano();
-        VoiceProperties.Volcano c = new VoiceProperties.Volcano();
-        c.setBaseUrl(runtimeConfig.get("auteur.voice.volcano.base-url", base.getBaseUrl()));
-        c.setHttpTimeoutSeconds(base.getHttpTimeoutSeconds());
-        c.setDemoText(base.getDemoText());
-        c.setAsyncMode(base.isAsyncMode());
-        c.setAsyncPollIntervalSec(base.getAsyncPollIntervalSec());
-        c.setAsyncMaxWaitSec(base.getAsyncMaxWaitSec());
-        c.setApiKey(runtimeConfig.get("auteur.voice.volcano.api-key"));
-        c.setAppKey(runtimeConfig.get("auteur.voice.volcano.app-key"));
-        c.setAccessKey(runtimeConfig.get("auteur.voice.volcano.access-key"));
-        c.setResourceId(runtimeConfig.get("auteur.voice.volcano.resource-id"));
-        return c;
+        this.volcanoConfig = volcanoConfig;
     }
 
     @Override
     public Result synthesize(Request req) {
-        VoiceProperties.Volcano cfg = effectiveVolcano();
+        VoiceProperties.Volcano cfg = volcanoConfig.resolve(props);
         String voiceType = pickVoiceType(req.voiceModel());
         String text = req.fullText() == null ? "" : req.fullText();
         if (text.isBlank()) {

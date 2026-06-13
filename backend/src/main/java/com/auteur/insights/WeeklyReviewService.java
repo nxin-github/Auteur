@@ -38,8 +38,8 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class WeeklyReviewService {
 
-    private static final int RECENT_VIDEOS_HARD_LIMIT = 30;
-    private static final int MIN_SAMPLE_FOR_REVIEW = 3;
+    private static final int RECENT_VIDEOS_HARD_LIMIT_DEFAULT = 30;
+    private static final int MIN_SAMPLE_FOR_REVIEW_DEFAULT = 3;
     private static final Pattern WEEK_CODE_RE = Pattern.compile("^(\\d{4})-W(\\d{2})$");
 
     private final LlmClient llmClient;
@@ -48,7 +48,11 @@ public class WeeklyReviewService {
     private final InsightService insightService;
     private final JdbcTemplate jdbc;
     private final WeeklyReviewRepository weeklyReviewRepository;
+    private final com.auteur.runtimeconfig.RuntimeConfig runtimeConfig;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private int recentVideosHardLimit() { return runtimeConfig.getInt("auteur.insights.weekly.recent-videos-limit", RECENT_VIDEOS_HARD_LIMIT_DEFAULT); }
+    private int minSampleForReview() { return runtimeConfig.getInt("auteur.insights.weekly.min-sample-for-review", MIN_SAMPLE_FOR_REVIEW_DEFAULT); }
 
     /**
      * 故意不加 @Transactional(readOnly = true):LlmClient 内部要往 cost_log 写审计行,
@@ -74,8 +78,8 @@ public class WeeklyReviewService {
                 .filter(s -> s != null && !s.isBlank())
                 .orElse("(上周无保存的下周改进计划)");
 
-        // 样本 < 3 直接返回兜底,不烧 token
-        if (weekVideos.size() < MIN_SAMPLE_FOR_REVIEW) {
+        // 样本 < 阈值 直接返回兜底,不烧 token
+        if (weekVideos.size() < minSampleForReview()) {
             String msg = String.format("本周样本不足(仅 %d 条),建议下周加大产能再复盘。", weekVideos.size());
             return new WeeklyReviewResult(msg, msg, msg, msg, stats, true);
         }
@@ -133,7 +137,7 @@ public class WeeklyReviewService {
                 .append("LEFT JOIN topic t ON t.id = pv.topic_id ")
                 .append("WHERE pv.published_at >= ? AND pv.published_at < ? ");
         if (platform != null && !platform.isBlank()) sb.append("AND pv.platform = ? ");
-        sb.append("ORDER BY pv.published_at DESC LIMIT ").append(RECENT_VIDEOS_HARD_LIMIT);
+        sb.append("ORDER BY pv.published_at DESC LIMIT ").append(recentVideosHardLimit());
 
         Object[] args = (platform == null || platform.isBlank())
                 ? new Object[]{since, until}

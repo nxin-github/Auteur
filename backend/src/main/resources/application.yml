@@ -44,8 +44,6 @@ logging:
     org.hibernate.SQL: WARN
 
 auteur:
-  llm:
-    timeout-seconds: 600
   voice:
     provider: volcano
   prompts:
@@ -54,11 +52,9 @@ auteur:
     remotion:
       enabled: ${AUTEUR_REMOTION_ENABLED:true}
       renderer-dir: ${AUTEUR_REMOTION_DIR:./renderer}
-      public-base-url: ${AUTEUR_PUBLIC_BASE_URL:http://localhost:8082}
+      # public-base-url 已在 V11 迁到 app_config 表(前端「系统设置 → 视频合成」UI 编辑)
   bgm:
     jamendo:
-      base-url: https://api.jamendo.com/v3.0
-      timeout-seconds: 30
       storage:
         local-dir: ./storage/bgm
         public-base: /api/files/bgm

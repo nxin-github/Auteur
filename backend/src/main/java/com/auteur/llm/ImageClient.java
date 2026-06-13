@@ -21,6 +21,8 @@ public class ImageClient {
     private final RestClient llmRestClient;
     private final ObjectMapper objectMapper;
     private final TosStorageService tos;
+    private final com.auteur.runtimeconfig.RuntimeConfig runtimeConfig;
+    private final RetryPolicy retryPolicy;
 
     public Result generate(LlmCallSpec spec, String prompt, String size) {
         return generate(spec, prompt, size, null);
@@ -48,7 +50,7 @@ public class ImageClient {
                     throw new SensitiveContentException(
                             "image gen blocked by upstream content audit", e);
                 }
-                RetryPolicy.Decision d = RetryPolicy.decide(errorType, attempt);
+                RetryPolicy.Decision d = retryPolicy.decide(errorType, attempt);
                 if (!d.retry()) {
                     log.warn("[美术] op={} model={} attempt={} failed ({}), giving up",
                             spec.getOperation(), model, attempt, errorType);
@@ -151,8 +153,8 @@ public class ImageClient {
         String mime = "image/png";
         try {
             java.net.URLConnection conn = java.net.URI.create(sourceUrl).toURL().openConnection();
-            conn.setConnectTimeout(15_000);
-            conn.setReadTimeout(60_000);
+            conn.setConnectTimeout(runtimeConfig.getInt("auteur.image.compress.connect-timeout-ms", 15_000));
+            conn.setReadTimeout(runtimeConfig.getInt("auteur.image.compress.read-timeout-ms", 60_000));
             String ct = conn.getContentType();
             if (ct != null && ct.startsWith("image/")) mime = ct;
             try (java.io.InputStream in = conn.getInputStream()) {

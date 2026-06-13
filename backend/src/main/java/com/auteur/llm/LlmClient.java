@@ -20,6 +20,7 @@ public class LlmClient {
 
     private final RestClient llmRestClient;
     private final com.auteur.runtimeconfig.RuntimeConfig runtimeConfig;
+    private final RetryPolicy retryPolicy;
 
     public LlmResult chat(LlmCallSpec spec, String systemPrompt, String userPrompt) {
         return chatWithRetry(spec, List.of(
@@ -51,7 +52,7 @@ public class LlmClient {
                 return doToolHttpCall(spec, model, messages, tools, attempt);
             } catch (RuntimeException e) {
                 String errorType = ErrorClassifier.classify(e);
-                RetryPolicy.Decision d = RetryPolicy.decide(errorType, attempt);
+                RetryPolicy.Decision d = retryPolicy.decide(errorType, attempt);
                 if (!d.retry()) {
                     log.warn("[LLM] op={} model={} attempt={} failed ({}), giving up",
                             spec.getOperation(), model, attempt, errorType);
@@ -151,7 +152,7 @@ public class LlmClient {
                 return doHttpCall(spec, model, messages, chars, attempt);
             } catch (RuntimeException e) {
                 String errorType = ErrorClassifier.classify(e);
-                RetryPolicy.Decision d = RetryPolicy.decide(errorType, attempt);
+                RetryPolicy.Decision d = retryPolicy.decide(errorType, attempt);
                 if (!d.retry()) {
                     log.warn("[LLM] op={} model={} attempt={} failed ({}), giving up",
                             spec.getOperation(), model, attempt, errorType);

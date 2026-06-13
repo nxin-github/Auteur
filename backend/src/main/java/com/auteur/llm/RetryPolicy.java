@@ -1,30 +1,44 @@
 package com.auteur.llm;
 
+import com.auteur.runtimeconfig.RuntimeConfig;
+import org.springframework.stereotype.Component;
+
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * 写死的重试策略，按 ErrorClassifier 的 errorType 分档。
+ * 按 ErrorClassifier 的 errorType 分档的重试策略。
  *
- * 历史上由 retry_rule 表驱动，做减法之后改硬编码：
- *   limit / timeout / network → 指数退避，最多 3 次
- *   json                       → 线性，最多 2 次
- *   sensitive / 4xx            → 不重试（同 prompt/同请求重试无意义）
+ *   limit / timeout / network → 指数退避,最多 N 次(N 由 RuntimeConfig 读 DB)
+ *   json                       → 线性,最多 N 次
+ *   sensitive / 4xx            → 不重试(同 prompt/同请求重试无意义)
+ *
+ * 重构记录:V12(2026-06-13)从 static utility 升格为 Spring @Component,max-attempts
+ * 改成从 app_config 读,延迟 base/cap ms 仍硬编码(运维很少调,改动 ROI 低)。
  */
+@Component
 public final class RetryPolicy {
 
-    private RetryPolicy() {}
+    private final RuntimeConfig runtimeConfig;
+
+    public RetryPolicy(RuntimeConfig runtimeConfig) {
+        this.runtimeConfig = runtimeConfig;
+    }
 
     public record Decision(boolean retry, long sleepMs) {}
 
-    public static Decision decide(String errorType, int attempt) {
+    public Decision decide(String errorType, int attempt) {
         return switch (errorType == null ? "network" : errorType) {
-            case "limit"    -> exponential(attempt, 3, 10_000L, 60_000L);
-            case "timeout"  -> exponential(attempt, 1, 2_000L, 5_000L);  // gpt-image-2 慢，最多 1 次重试
-            case "network"  -> exponential(attempt, 3, 2_000L, 30_000L);
-            case "json"     -> linear(attempt, 2, 1_000L, 5_000L);
+            case "limit"    -> exponential(attempt, maxAttempts("limit",   3), 10_000L, 60_000L);
+            case "timeout"  -> exponential(attempt, maxAttempts("timeout", 1),  2_000L,  5_000L);
+            case "network"  -> exponential(attempt, maxAttempts("network", 3),  2_000L, 30_000L);
+            case "json"     -> linear     (attempt, maxAttempts("json",    2),  1_000L,  5_000L);
             case "sensitive", "4xx" -> new Decision(false, 0L);
-            default         -> exponential(attempt, 3, 2_000L, 30_000L);
+            default         -> exponential(attempt, maxAttempts("network", 3),  2_000L, 30_000L);
         };
+    }
+
+    private int maxAttempts(String errorClass, int fallback) {
+        return runtimeConfig.getInt("auteur.llm.retry." + errorClass + "-max-attempts", fallback);
     }
 
     private static Decision exponential(int attempt, int maxRetries, long baseMs, long capMs) {

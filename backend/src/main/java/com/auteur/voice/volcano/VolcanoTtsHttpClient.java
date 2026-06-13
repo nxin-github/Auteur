@@ -107,7 +107,7 @@ public class VolcanoTtsHttpClient {
                 .header("Content-Type", "application/json")
                 .header("X-Api-Resource-Id", resourceId)
                 .header("X-Api-Request-Id", requestId)
-                .timeout(Duration.ofSeconds(Math.max(60, cfg.getHttpTimeoutSeconds())))
+                .timeout(Duration.ofSeconds(cfg.getHttpTimeoutSeconds()))
                 .POST(HttpRequest.BodyPublishers.ofString(bodyJson, StandardCharsets.UTF_8));
         if (cfg.getApiKey() != null && !cfg.getApiKey().isBlank()) {
             rb.header("X-Api-Key", cfg.getApiKey());

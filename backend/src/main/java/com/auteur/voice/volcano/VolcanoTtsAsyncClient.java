@@ -96,7 +96,7 @@ public class VolcanoTtsAsyncClient {
                 .header("X-Api-Access-Key", cfg.getAccessKey())
                 .header("X-Api-Resource-Id", resourceId)
                 .header("X-Api-Request-Id", uniqueId)
-                .timeout(Duration.ofSeconds(Math.max(30, cfg.getHttpTimeoutSeconds())))
+                .timeout(Duration.ofSeconds(cfg.getHttpTimeoutSeconds()))
                 .POST(HttpRequest.BodyPublishers.ofString(bodyJson, StandardCharsets.UTF_8));
 
         HttpResponse<String> resp;
@@ -161,7 +161,7 @@ public class VolcanoTtsAsyncClient {
                     .header("X-Api-Access-Key", cfg.getAccessKey())
                     .header("X-Api-Resource-Id", resourceId)
                     .header("X-Api-Request-Id", UUID.randomUUID().toString())
-                    .timeout(Duration.ofSeconds(30))
+                    .timeout(Duration.ofSeconds(cfg.getAsyncQueryTimeoutSeconds()))
                     .POST(HttpRequest.BodyPublishers.ofString(bodyJson, StandardCharsets.UTF_8))
                     .build();
 
@@ -224,7 +224,7 @@ public class VolcanoTtsAsyncClient {
     /** 下载 audio_url 到字节数组(audio_url 1h 失效)。 */
     private byte[] downloadAudio(String audioUrl) {
         HttpRequest req = HttpRequest.newBuilder(URI.create(audioUrl))
-                .timeout(Duration.ofSeconds(120))
+                .timeout(Duration.ofSeconds(cfg.getAsyncDownloadTimeoutSeconds()))
                 .GET()
                 .build();
         try {

@@ -28,13 +28,17 @@ const edits = ref<Record<string, string>>({})
 const editingSecret = ref<Record<string, boolean>>({})
 
 const grouped = computed<Array<{ category: string; label: string; items: AppConfigItem[] }>>(() => {
-  const order = ['llm', 'tos', 'voice', 'bgm', 'extension']
+  const order = ['llm', 'tos', 'voice', 'bgm', 'video', 'cover', 'agent', 'tuning', 'extension']
   const labels: Record<string, string> = {
-    llm: 'LLM 中转站',
-    tos: '火山对象存储 (TOS)',
-    voice: '火山语音合成 (TTS)',
-    bgm: '背景音乐 (Jamendo)',
-    extension: '浏览器插件',
+    llm: 'AI 大模型接口',
+    tos: '云端文件存储',
+    voice: 'AI 语音合成',
+    bgm: '背景音乐曲库',
+    video: '视频合成参数',
+    cover: '封面生成',
+    agent: 'AI 助手对话',
+    tuning: '业务质检规则',
+    extension: '浏览器插件接入',
     custom: '其它',
   }
   const buckets: Record<string, AppConfigItem[]> = {}
@@ -156,32 +160,28 @@ function isDirty(key: string): boolean {
 
       <div class="card p-4 bg-accent-soft border-accent/30">
         <div class="text-sm text-text-secondary leading-relaxed">
-          除 MySQL 地址外的所有第三方配置(LLM 中转、对象存储、语音/TTS、BGM 选曲、插件 token 等)都在这里填写,落到 DB。
-          <strong>UI 修改后,LLM RestClient / TOS 客户端等启动期 bean 需要重启后端才能生效</strong>;
-          其它(语音/BGM/Extension token)立即生效。
+          除数据库地址外的所有第三方配置(LLM 中转、对象存储、语音/TTS、BGM 选曲、插件 token 等)都在这里填写。
+          <strong>修改 LLM / TOS 等基础服务后需要重启应用才能生效</strong>;
+          其它(语音、BGM、插件 token)立即生效。
         </div>
       </div>
 
       <div v-for="g in grouped" :key="g.category" class="card p-5 space-y-4">
-        <h2 class="text-base font-semibold flex items-center gap-2">
-          {{ g.label }}
-          <span class="chip text-[10px] bg-surface-tertiary text-text-muted font-mono">{{ g.category }}</span>
-        </h2>
+        <h2 class="text-base font-semibold">{{ g.label }}</h2>
         <div v-for="item in g.items" :key="item.configKey" class="space-y-1.5">
           <label class="text-sm text-text-primary block flex items-center gap-2">
-            <span class="font-mono text-xs">{{ item.configKey }}</span>
+            <span>{{ item.description || item.configKey }}</span>
             <span v-if="item.secret" class="chip text-[9px] bg-status-paused/15 text-status-paused">敏感</span>
-            <span v-if="item.hasDbValue" class="chip text-[9px] bg-status-done/15 text-status-done">已配置</span>
-            <span v-else class="chip text-[9px] bg-status-failed/15 text-status-failed">未配置</span>
-            <span v-if="isDirty(item.configKey)" class="chip text-[9px] bg-amber-500/15 text-amber-700">已改</span>
+            <span v-if="item.hasDbValue" class="chip text-[9px] bg-status-done/15 text-status-done">已填写</span>
+            <span v-else class="chip text-[9px] bg-status-failed/15 text-status-failed">未填写</span>
+            <span v-if="isDirty(item.configKey)" class="chip text-[9px] bg-amber-500/15 text-amber-700">已改动</span>
           </label>
-          <div v-if="item.description" class="text-xs text-text-muted">{{ item.description }}</div>
 
           <!-- secret 未展开:显示 mask + 编辑按钮 -->
           <div v-if="item.secret && !editingSecret[item.configKey]" class="flex gap-2 items-center">
             <input
               type="text"
-              :value="item.displayValue || '(未配置)'"
+              :value="item.displayValue || '(暂未填写)'"
               readonly
               class="form-input font-mono flex-1 text-text-muted"
             />
@@ -195,14 +195,14 @@ function isDirty(key: string): boolean {
             <input
               type="text"
               :value="valueOrEdit(item)"
-              :placeholder="item.secret ? '输入新值(留空 = 清空,走 yml 兜底)' : ''"
+              :placeholder="item.secret ? '输入新值(留空 = 使用默认值)' : ''"
               class="form-input font-mono flex-1"
               @input="onInput(item.configKey, ($event.target as HTMLInputElement).value)"
             />
             <button v-if="item.secret" class="btn-icon" title="收起" @click="cancelEditSecret(item.configKey)">
               <EyeOff :size="12" />
             </button>
-            <button v-else-if="isDirty(item.configKey)" class="btn-icon" title="清空" @click="clearField(item)">
+            <button v-else-if="isDirty(item.configKey)" class="btn-icon" title="还原" @click="clearField(item)">
               <RotateCcw :size="12" />
             </button>
           </div>

@@ -1,5 +1,6 @@
 package com.auteur.voice;
 
+import com.auteur.voice.volcano.VolcanoConfigResolver;
 import com.auteur.voice.volcano.VolcanoTtsHttpClient;
 import com.auteur.voice.volcano.VolcanoVoiceCatalog;
 import lombok.extern.slf4j.Slf4j;
@@ -22,13 +23,13 @@ public class VoiceDemoService {
 
     private final VoiceProperties props;
     private final VolcanoVoiceCatalog catalog;
-    private final com.auteur.runtimeconfig.RuntimeConfig runtimeConfig;
+    private final VolcanoConfigResolver volcanoConfig;
 
     public VoiceDemoService(VoiceProperties props, VolcanoVoiceCatalog catalog,
-                            com.auteur.runtimeconfig.RuntimeConfig runtimeConfig) {
+                            VolcanoConfigResolver volcanoConfig) {
         this.props = props;
         this.catalog = catalog;
-        this.runtimeConfig = runtimeConfig;
+        this.volcanoConfig = volcanoConfig;
     }
 
     /** @return audioUrl,形如 /api/files/voice/demo-{voice}-{speedRate}.mp3 */
@@ -66,20 +67,12 @@ public class VoiceDemoService {
             return VOICE_URL_PREFIX + fileName;
         }
 
-        String text = props.getVolcano().getDemoText();
+        VoiceProperties.Volcano cfg = volcanoConfig.resolve(props);
+        String text = cfg.getDemoText();
         if (text == null || text.isBlank()) {
-            throw new IllegalStateException("auteur.voice.volcano.demo-text 未配置");
+            throw new IllegalStateException("auteur.voice.volcano.demo-text 为空,请到「系统设置 → 火山语音合成」填写示例文本");
         }
         log.info("[VoiceDemo] synth voice={} speed={} chars={}", voiceType, sp, text.length());
-        VoiceProperties.Volcano base = props.getVolcano();
-        VoiceProperties.Volcano cfg = new VoiceProperties.Volcano();
-        cfg.setBaseUrl(runtimeConfig.get("auteur.voice.volcano.base-url", base.getBaseUrl()));
-        cfg.setApiKey(runtimeConfig.get("auteur.voice.volcano.api-key"));
-        cfg.setAppKey(runtimeConfig.get("auteur.voice.volcano.app-key"));
-        cfg.setAccessKey(runtimeConfig.get("auteur.voice.volcano.access-key"));
-        cfg.setResourceId(runtimeConfig.get("auteur.voice.volcano.resource-id"));
-        cfg.setHttpTimeoutSeconds(base.getHttpTimeoutSeconds());
-        cfg.setDemoText(base.getDemoText());
         VolcanoTtsHttpClient session = new VolcanoTtsHttpClient(cfg);
         VolcanoTtsHttpClient.Result r = session.synthesize(voiceType, text, speechRate, 0);
         if (r.audioBytes() == null || r.audioBytes().length == 0) {

@@ -30,7 +30,8 @@ public class VoiceProperties {
         private String accessKey = "";
         private String resourceId = "";
         private int httpTimeoutSeconds = 90;
-        private String demoText = "夜色渐浓,我望着窗外的灯火,想起了那段往事。";
+        /** 试听文本默认空,客户首次部署后在「系统设置 → AI 语音合成」UI 自己填。 */
+        private String demoText = "";
         /**
          * 异步任务模式开关。
          *  false:V3 单向流式 /api/v3/tts/unidirectional,X-Api-Key 鉴权
@@ -39,6 +40,10 @@ public class VoiceProperties {
         private boolean asyncMode = false;
         private int asyncPollIntervalSec = 3;
         private int asyncMaxWaitSec = 300;
+        /** 异步 query 单次 HTTP 超时(秒)。原硬编码 30,迁 app_config 后从 DB 读。 */
+        private int asyncQueryTimeoutSeconds = 30;
+        /** 异步合成完成后下载 mp3 的 HTTP 超时(秒)。原硬编码 120,迁 app_config 后从 DB 读。 */
+        private int asyncDownloadTimeoutSeconds = 120;
     }
 
     @Data

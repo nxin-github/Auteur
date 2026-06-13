@@ -87,10 +87,33 @@ public class RuntimeConfig {
         try { return Integer.parseInt(v.trim()); } catch (NumberFormatException e) { return fallback; }
     }
 
+    /** 同 getInt,但要求结果 > 0;非正数(0/负数/parse 失败/未配置)一律回 fallback。
+     *  适用 fps / width / height / timeout / bitrate 等"语义上必须正"的字段。 */
+    public int getIntPositive(String key, int fallback) {
+        int v = getInt(key, fallback);
+        return v > 0 ? v : fallback;
+    }
+
+    public double getDouble(String key, double fallback) {
+        String v = get(key);
+        if (v.isBlank()) return fallback;
+        try { return Double.parseDouble(v.trim()); } catch (NumberFormatException e) { return fallback; }
+    }
+
+    /** 同 getDouble,但要求结果 > 0;非正数一律回 fallback。 */
+    public double getDoublePositive(String key, double fallback) {
+        double v = getDouble(key, fallback);
+        return v > 0 ? v : fallback;
+    }
+
     public boolean getBoolean(String key, boolean fallback) {
         String v = get(key);
         if (v.isBlank()) return fallback;
-        return v.trim().equalsIgnoreCase("true") || v.trim().equals("1");
+        String t = v.trim().toLowerCase();
+        // 接受 true/yes/on/1 — 大小写不敏感,空白已 trim
+        if (t.equals("true") || t.equals("yes") || t.equals("on") || t.equals("1")) return true;
+        if (t.equals("false") || t.equals("no") || t.equals("off") || t.equals("0")) return false;
+        return fallback;
     }
 
     @Transactional

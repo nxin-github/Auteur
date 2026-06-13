@@ -47,13 +47,60 @@ public class FfmpegVideoRenderer implements VideoRenderer {
     private final VideoProperties props;
     private final VoiceFileResolver voiceFileResolver;
     private final TosStorageService tos;
+    private final com.auteur.runtimeconfig.RuntimeConfig runtimeConfig;
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(15)).build();
 
-    public FfmpegVideoRenderer(VideoProperties props, VoiceFileResolver voiceFileResolver, TosStorageService tos) {
+    public FfmpegVideoRenderer(VideoProperties props, VoiceFileResolver voiceFileResolver, TosStorageService tos,
+                               com.auteur.runtimeconfig.RuntimeConfig runtimeConfig) {
         this.props = props;
         this.voiceFileResolver = voiceFileResolver;
         this.tos = tos;
+        this.runtimeConfig = runtimeConfig;
+    }
+
+    /**
+     * 合并 RuntimeConfig DB 值 + props yml 兜底,生成 ffmpeg 用的有效配置。
+     * 每次合成现读,改 DB 立即对下次合成生效。binary-path 留 yml(profile 敏感)。
+     *
+     * 数值字段一律走 getIntPositive:DB 里被改成 0/负数(运维误操作)时回落 yml 默认,
+     *   不会让 ffmpeg 拼出 `-r 0` 之类无效命令。
+     * 字幕字体走 osAwareSubtitleFont:DB 没值时按 OS 选合适的中文字体
+     *   (避免 Linux/Docker 上拿 macOS-only 的 PingFang SC)。
+     */
+    private VideoProperties.Ffmpeg effectiveFfmpeg() {
+        VideoProperties.Ffmpeg base = props.getFfmpeg();
+        VideoProperties.Ffmpeg c = new VideoProperties.Ffmpeg();
+        c.setBinaryPath(base.getBinaryPath()); // 留 yml,不迁
+        c.setTimeoutSeconds(runtimeConfig.getIntPositive("auteur.video.ffmpeg.timeout-seconds", base.getTimeoutSeconds()));
+        c.setWidth(runtimeConfig.getIntPositive("auteur.video.ffmpeg.width", base.getWidth()));
+        c.setHeight(runtimeConfig.getIntPositive("auteur.video.ffmpeg.height", base.getHeight()));
+        c.setFps(runtimeConfig.getIntPositive("auteur.video.ffmpeg.fps", base.getFps()));
+        c.setVideoBitrateKbps(runtimeConfig.getIntPositive("auteur.video.ffmpeg.video-bitrate-kbps", base.getVideoBitrateKbps()));
+        c.setAudioBitrateKbps(runtimeConfig.getIntPositive("auteur.video.ffmpeg.audio-bitrate-kbps", base.getAudioBitrateKbps()));
+        c.setSubtitleFont(osAwareSubtitleFont(base.getSubtitleFont()));
+        c.setSubtitleFontSize(runtimeConfig.getIntPositive("auteur.video.ffmpeg.subtitle-font-size", base.getSubtitleFontSize()));
+        c.setSubtitleMaxCharsPerLine(runtimeConfig.getIntPositive("auteur.video.ffmpeg.subtitle-max-chars-per-line", base.getSubtitleMaxCharsPerLine()));
+        // marginV=0 是合法值(无边距),不强制 positive
+        c.setSubtitleMarginV(runtimeConfig.getInt("auteur.video.ffmpeg.subtitle-margin-v", base.getSubtitleMarginV()));
+        return c;
+    }
+
+    /**
+     * 字幕字体 OS-aware 选择:
+     *   DB 有值 → 用 DB(用户显式配置优先)
+     *   DB 空 + macOS → "PingFang SC"(系统自带)
+     *   DB 空 + Linux/其它 → "Noto Sans CJK SC"(Docker 镜像 / Debian / Ubuntu 通常有)
+     * V14 已把 V11 写入的 'PingFang SC' 默认值清空,让 fresh deploy 走这个分支。
+     */
+    private String osAwareSubtitleFont(String ymlFallback) {
+        String fromDb = runtimeConfig.get("auteur.video.ffmpeg.subtitle-font");
+        if (!fromDb.isBlank()) return fromDb;
+        String os = System.getProperty("os.name", "").toLowerCase();
+        if (os.contains("mac") || os.contains("darwin")) {
+            return ymlFallback != null && !ymlFallback.isBlank() ? ymlFallback : "PingFang SC";
+        }
+        return "Noto Sans CJK SC";
     }
 
     @Override
@@ -66,12 +113,15 @@ public class FfmpegVideoRenderer implements VideoRenderer {
         Path workDir = ensureDir(Paths.get(props.getStorage().getWorkDir())
                 .resolve(UUID.randomUUID().toString()));
 
+        // 一次抓取本次渲染用的有效 ffmpeg 配置(DB 优先,yml 兜底)
+        VideoProperties.Ffmpeg cfg = effectiveFfmpeg();
+
         try {
             List<ImageClip> ordered = new ArrayList<>(req.clips());
             ordered.sort(Comparator.comparingInt(ImageClip::shotIndex));
 
-            int width  = req.width()  > 0 ? req.width()  : props.getFfmpeg().getWidth();
-            int height = req.height() > 0 ? req.height() : props.getFfmpeg().getHeight();
+            int width  = req.width()  > 0 ? req.width()  : cfg.getWidth();
+            int height = req.height() > 0 ? req.height() : cfg.getHeight();
 
             List<Path> localImages = downloadImages(ordered, workDir);
             Path concatFile = workDir.resolve("concat.txt");
@@ -94,14 +144,14 @@ public class FfmpegVideoRenderer implements VideoRenderer {
                 log.warn("[剪辑·FFmpeg] scriptId={} subtitle 本地文件不存在 -> 不烧字幕。期望: {}",
                         req.scriptId(), srtPath);
             } else {
-                int maxChars = props.getFfmpeg().getSubtitleMaxCharsPerLine();
+                int maxChars = cfg.getSubtitleMaxCharsPerLine();
                 if (isHighlight) {
                     workSub = workDir.resolve("subs.ass");
                     List<SrtParser.Cue> cues = SrtParser.parseFile(srtPath);
                     AssSubtitleWriter.AssStyle style = new AssSubtitleWriter.AssStyle(
-                            props.getFfmpeg().getSubtitleFont(),
-                            props.getFfmpeg().getSubtitleFontSize(),
-                            props.getFfmpeg().getSubtitleMarginV());
+                            cfg.getSubtitleFont(),
+                            cfg.getSubtitleFontSize(),
+                            cfg.getSubtitleMarginV());
                     AssSubtitleWriter.writeHighlight(cues, workSub, style, maxChars);
                     log.info("[剪辑·FFmpeg] scriptId={} subtitle highlight 就位: {} -> {} ({} bytes, {} cues, maxChars={})",
                             req.scriptId(), srtPath, workSub, Files.size(workSub), cues.size(), maxChars);
@@ -118,7 +168,7 @@ public class FfmpegVideoRenderer implements VideoRenderer {
             Path outPath = outDir.resolve(outName);
 
             int durationMs = runFfmpeg(concatFile, audioPath, workSub, outPath, width, height,
-                    req.bgm(), isHighlight);
+                    req.bgm(), isHighlight, cfg);
 
             int durationSec = (int) Math.max(1, Math.round(
                     ordered.stream().mapToDouble(ImageClip::durationSec).sum()));
@@ -194,9 +244,8 @@ public class FfmpegVideoRenderer implements VideoRenderer {
      */
     private int runFfmpeg(Path concatFile, Path audio, Path subtitle, Path outPath,
                           int width, int height, VideoRenderer.BgmConfig bgm,
-                          boolean isHighlightAss)
+                          boolean isHighlightAss, VideoProperties.Ffmpeg cfg)
             throws IOException, InterruptedException {
-        VideoProperties.Ffmpeg cfg = props.getFfmpeg();
 
         boolean hasAudio = audio != null && Files.exists(audio);
         boolean hasBgm   = hasAudio && bgm != null && bgm.bgmFile() != null && Files.exists(bgm.bgmFile());

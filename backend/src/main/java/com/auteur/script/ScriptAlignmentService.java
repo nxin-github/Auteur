@@ -44,24 +44,31 @@ public class ScriptAlignmentService {
 
     /** 中文 narration 大致 4-5 字/秒,默认值偏保守(中速朗读)。 */
     private static final double CHARS_PER_SEC = 4.5;
-    private static final double MIN_SECTION_SECONDS = 2.0;
+    private static final double MIN_SECTION_SECONDS_DEFAULT = 2.0;
 
     private final ScriptRepository scriptRepository;
     private final ScriptSectionRepository sectionRepository;
     private final StoryboardShotRepository shotRepository;
     private final VoiceAssetRepository voiceAssetRepository;
     private final com.auteur.common.path.VoiceFileResolver voiceFileResolver;
+    private final com.auteur.runtimeconfig.RuntimeConfig runtimeConfig;
 
     public ScriptAlignmentService(ScriptRepository scriptRepository,
                                   ScriptSectionRepository sectionRepository,
                                   StoryboardShotRepository shotRepository,
                                   VoiceAssetRepository voiceAssetRepository,
-                                  com.auteur.common.path.VoiceFileResolver voiceFileResolver) {
+                                  com.auteur.common.path.VoiceFileResolver voiceFileResolver,
+                                  com.auteur.runtimeconfig.RuntimeConfig runtimeConfig) {
         this.scriptRepository = scriptRepository;
         this.sectionRepository = sectionRepository;
         this.shotRepository = shotRepository;
         this.voiceAssetRepository = voiceAssetRepository;
         this.voiceFileResolver = voiceFileResolver;
+        this.runtimeConfig = runtimeConfig;
+    }
+
+    private double minSectionSeconds() {
+        return runtimeConfig.getDoublePositive("auteur.script.alignment.min-section-seconds", MIN_SECTION_SECONDS_DEFAULT);
     }
 
     public record AlignmentResult(
@@ -163,7 +170,7 @@ public class ScriptAlignmentService {
         double cumSec = 0;
         for (ScriptSection s : sections) {
             int chars = countNarrationChars(s.getTextContent());
-            double dur = Math.max(MIN_SECTION_SECONDS, chars / CHARS_PER_SEC);
+            double dur = Math.max(minSectionSeconds(), chars / CHARS_PER_SEC);
             double startMs = cumSec * 1000.0;
             double endMs = (cumSec + dur) * 1000.0;
             out.put(s.getSectionCode(), new double[]{startMs, endMs});
