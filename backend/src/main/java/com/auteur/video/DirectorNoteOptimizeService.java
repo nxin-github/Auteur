@@ -48,9 +48,8 @@ public class DirectorNoteOptimizeService {
         if (topicId == null || topicId <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "topicId 非法");
         }
-        if (req == null || req.userFeedback() == null || req.userFeedback().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "userFeedback 不能为空");
-        }
+        // userFeedback 允许为空(初次生成或用户没有具体诉求,让模型按 Topic 上下文自行判断)
+        String feedback = (req == null || req.userFeedback() == null) ? "" : req.userFeedback().trim();
         Topic topic = topicRepository.findById(topicId).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "topic " + topicId + " 不存在"));
 
@@ -100,7 +99,17 @@ public class DirectorNoteOptimizeService {
                 5. keyMoments 推荐 2-4 个;highlightThemes 推荐 3-8 个。
                 6. 如果用户当前已填了某些内容,在合理范围内尽量保留其语感,不要无故抹平用户已经写好的措辞。
                 7. explanation 是一句中文,30-120 字,概括你做了哪些调整。
+                8. **JSON 结构纪律(违反就解析失败)**:
+                   - 每个 `{` 必须对应一个 `}` 关闭后才进逗号或下一个键
+                   - 数组里每个对象先写 `}` 关闭对象,再写 `,` 连接下一个,最后用 `]` 关闭数组
+                   - narrativeArc 5 个 element 都是对象 — 每个对象都用 `}` 闭合,数组整体用 `]` 闭合,
+                     不要把 `]` 当成对象闭合写在 element 内部
                 """;
+
+        String userFeedbackBlock = feedback.isEmpty()
+                ? "(用户未给出具体诉求 — 请你结合 Topic 上下文与当前草稿,产出最贴合本片题材/情绪的整份导演笔记。"
+                  + "若当前草稿是空对象,从零生成;若已有部分内容,尽量保留其语感的同时把缺的字段补齐、不合理的地方调顺。)"
+                : feedback;
 
         String user = """
                 你正在重写一个 Topic 的导演笔记。
@@ -115,22 +124,39 @@ public class DirectorNoteOptimizeService {
                 %s
 
                 请综合上述信息重写整份 DirectorNote。直接输出符合上述【输出要求】的 JSON。
-                """.formatted(topicCtx, currentJson, req.userFeedback().trim());
+                """.formatted(topicCtx, currentJson, userFeedbackBlock);
 
         LlmCallSpec spec = LlmCallSpec.builder()
                 .operation("director_note_optimize")
                 .relatedType("TOPIC")
                 .relatedId(topicId)
                 .temperature(0.5)
+                // 整份 DirectorNote JSON 含 5 段 narrativeArc + visualStyle + protagonistVibe +
+                // keyMoments + highlightThemes + directorNotes,实测中文输出 1500-3000 字符 /
+                // 1000-1500 tokens。不设 maxTokens 时 DeepSeek 默认 1024 会截断 → JSON 解析失败。
+                .maxTokens(4000)
                 .build();
 
-        LlmResult result = llmClient.chat(spec, system, user);
-        String raw = result.getContent();
-        log.info("[DirectorNoteOptimize] topicId={} feedbackChars={} outChars={} ms={}",
-                topicId, req.userFeedback().length(),
-                raw == null ? 0 : raw.length(), result.getDurationMs());
-
-        return parseAndValidate(raw);
+        // LLM 偶发结构性错误(数组对象嵌套漏 } 之类),不是 healer 能修的字符级问题 —
+        // 整次重新生成成功率 > 修复尝试。最多重试 2 次,加起来约 60-80s。
+        ResponseStatusException lastErr = null;
+        for (int attempt = 1; attempt <= 2; attempt++) {
+            LlmResult result = llmClient.chat(spec, system, user);
+            String raw = result.getContent();
+            log.info("[DirectorNoteOptimize] topicId={} attempt={} feedbackChars={} outChars={} ms={}",
+                    topicId, attempt, feedback.length(),
+                    raw == null ? 0 : raw.length(), result.getDurationMs());
+            try {
+                return parseAndValidate(raw);
+            } catch (ResponseStatusException e) {
+                lastErr = e;
+                if (attempt < 2) {
+                    log.warn("[DirectorNoteOptimize] attempt={} parse failed, retrying once: {}",
+                            attempt, e.getReason());
+                }
+            }
+        }
+        throw lastErr;
     }
 
     private String buildTopicContext(Topic topic) {
@@ -168,8 +194,12 @@ public class DirectorNoteOptimizeService {
         String json = stripped.substring(start, end + 1);
         Map<String, Object> parsed;
         try {
-            parsed = objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+            // LLM 经常在中文 prompt 内嵌套双引号(如「" "」),JsonHealer 修常见 unescaped 双引号
+            String healed = com.auteur.llm.JsonHealer.fixUnescapedAsciiQuotes(json);
+            parsed = objectMapper.readValue(healed, new TypeReference<Map<String, Object>>() {});
         } catch (Exception e) {
+            // 完整 raw 落 log 便于复盘 — preview 只截 200 字看不见根因
+            log.warn("[DirectorNoteOptimize] parse failed: {}\nFULL raw=\n{}", e.toString(), raw);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "LLM 输出 JSON 解析失败: " + TextUtils.preview(raw));
         }

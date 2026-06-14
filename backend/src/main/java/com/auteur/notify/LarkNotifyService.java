@@ -3,10 +3,6 @@ package com.auteur.notify;
 import com.auteur.domain.PipelineRun;
 import com.auteur.runtimeconfig.RuntimeConfig;
 import com.lark.oapi.Client;
-import com.lark.oapi.service.contact.v3.model.BatchGetIdUserReq;
-import com.lark.oapi.service.contact.v3.model.BatchGetIdUserReqBody;
-import com.lark.oapi.service.contact.v3.model.BatchGetIdUserResp;
-import com.lark.oapi.service.contact.v3.model.UserContactInfo;
 import com.lark.oapi.service.im.v1.model.CreateMessageReq;
 import com.lark.oapi.service.im.v1.model.CreateMessageReqBody;
 import com.lark.oapi.service.im.v1.model.CreateMessageResp;
@@ -15,8 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 
 /**
@@ -25,7 +19,8 @@ import java.util.concurrent.ForkJoinPool;
  * 设计:
  *  - 总开关 + 凭证 + 接收邮箱都从 RuntimeConfig 读,任一项缺失则 short-circuit 不发
  *  - Client 按 (app-id, app-secret) 缓存,凭证变化时自动重建
- *  - email → open_id 缓存避免每次合成都查通讯录
+ *  - **直接用 receive_id_type=email 发消息**,不需要先查 open_id,只用 IM 权限
+ *    (im:message:send_as_bot 即可,不需要 contact 通讯录权限)
  *  - 通知整链 try/catch 吞掉所有异常 — 飞书挂了不能影响 pipeline 主流程
  *  - 走 ForkJoinPool.commonPool 异步,主线程立即返回,markDone/markFailed 不等网络
  */
@@ -38,9 +33,6 @@ public class LarkNotifyService {
     /** 客户端缓存。key = "app-id:app-secret",变了就重建。 */
     private volatile String cachedKey = "";
     private volatile Client cachedClient;
-
-    /** email → open_id 缓存。凭证重建时一并清。 */
-    private final Map<String, String> emailToOpenId = new ConcurrentHashMap<>();
 
     public LarkNotifyService(RuntimeConfig runtimeConfig) {
         this.runtimeConfig = runtimeConfig;
@@ -63,19 +55,14 @@ public class LarkNotifyService {
             try {
                 Client client = getOrInitClient();
                 if (client == null) return;
-                String openId = resolveOpenId(client, email);
-                if (openId == null) {
-                    log.warn("[LarkNotify] 找不到邮箱 {} 对应的飞书账号(检查应用是否有通讯录读取权限)", email);
-                    return;
-                }
-                sendText(client, openId, messageSupplier.get());
+                sendTextByEmail(client, email, messageSupplier.get());
             } catch (Exception e) {
                 log.warn("[LarkNotify] send failed: {}", e.toString());
             }
         });
     }
 
-    /** 凭证缺失 → null。凭证变化 → 重建 Client + 清 email 缓存。 */
+    /** 凭证缺失 → null。凭证变化 → 重建 Client。 */
     private Client getOrInitClient() {
         String appId = runtimeConfig.get("auteur.lark.app-id");
         String appSecret = runtimeConfig.get("auteur.lark.app-secret");
@@ -87,7 +74,6 @@ public class LarkNotifyService {
                     cachedClient = Client.newBuilder(appId, appSecret)
                             .requestTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
                             .build();
-                    emailToOpenId.clear();
                     cachedKey = key;
                     log.info("[LarkNotify] Client 已 (重)建");
                 }
@@ -96,45 +82,25 @@ public class LarkNotifyService {
         return cachedClient;
     }
 
-    /** 邮箱 → open_id。命中缓存直接返回;否则调通讯录 batch_get_id。 */
-    private String resolveOpenId(Client client, String email) throws Exception {
-        String cached = emailToOpenId.get(email);
-        if (cached != null) return cached;
-
-        BatchGetIdUserReq req = BatchGetIdUserReq.newBuilder()
-                .userIdType("open_id")
-                .batchGetIdUserReqBody(BatchGetIdUserReqBody.newBuilder()
-                        .emails(new String[]{email})
-                        .build())
-                .build();
-        BatchGetIdUserResp resp = client.contact().v3().user().batchGetId(req);
-        if (resp == null || !resp.success() || resp.getData() == null) {
-            log.warn("[LarkNotify] batchGetId failed code={} msg={}",
-                    resp == null ? -1 : resp.getCode(),
-                    resp == null ? "null" : resp.getMsg());
-            return null;
-        }
-        UserContactInfo[] list = resp.getData().getUserList();
-        if (list == null || list.length == 0 || list[0].getUserId() == null) return null;
-        String openId = list[0].getUserId();
-        emailToOpenId.put(email, openId);
-        return openId;
-    }
-
-    private void sendText(Client client, String openId, String text) throws Exception {
+    /**
+     * 直接按 email 发文本。飞书 IM v1 messages/create 支持 receive_id_type=email,
+     * 服务端自己根据邮箱在租户内找用户,**不需要应用有通讯录读取权限**。
+     */
+    private void sendTextByEmail(Client client, String email, String text) throws Exception {
         // 飞书 IM text 消息 content 是 JSON 字符串 {"text":"..."}
         String content = "{\"text\":" + jsonEscape(text) + "}";
         CreateMessageReq req = CreateMessageReq.newBuilder()
-                .receiveIdType("open_id")
+                .receiveIdType("email")
                 .createMessageReqBody(CreateMessageReqBody.newBuilder()
-                        .receiveId(openId)
+                        .receiveId(email)
                         .msgType("text")
                         .content(content)
                         .build())
                 .build();
         CreateMessageResp resp = client.im().v1().message().create(req);
         if (resp == null || !resp.success()) {
-            log.warn("[LarkNotify] send failed code={} msg={}",
+            log.warn("[LarkNotify] send failed email={} code={} msg={}",
+                    email,
                     resp == null ? -1 : resp.getCode(),
                     resp == null ? "null" : resp.getMsg());
         }

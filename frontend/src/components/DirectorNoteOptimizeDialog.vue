@@ -40,7 +40,7 @@ watch(
   },
 )
 
-const canSubmit = computed(() => !busy.value && userFeedback.value.trim().length > 0)
+const canSubmit = computed(() => !busy.value)
 
 async function submit() {
   if (!props.topicId || !canSubmit.value) return
@@ -111,12 +111,12 @@ function close() {
       <!-- 阶段一:输入诉求 -->
       <template v-if="!result">
         <label class="flex flex-col gap-1">
-          <span class="text-xs text-gray-500">你希望怎么改?(越具体越好)</span>
+          <span class="text-xs text-gray-500">你希望怎么改?(可选,留空 = 让模型按 Topic 上下文自行判断)</span>
           <textarea
             v-model="userFeedback"
             rows="6"
             :disabled="busy"
-            placeholder="例:整体偏沉痛与留白;keyMoments 加一段反转;tone 别再写&quot;压抑&quot;,改用孤独少年皇帝。"
+            placeholder="例:整体偏沉痛与留白;keyMoments 加一段反转;tone 别再写&quot;压抑&quot;,改用孤独少年皇帝。&#10;&#10;留空也可以提交 — 模型会按 Topic 题材 + 当前草稿自行判断,适合首次生成或没有明确想法的场景。"
             class="w-full px-3 py-2 border rounded text-sm font-sans resize-y focus:outline-none focus:ring-1 focus:ring-blue-400"
           />
         </label>
